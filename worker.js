@@ -37,7 +37,7 @@ async function handleRequest(request) {
     </head>
     <body>
         <div class="container">
-            <h1>欢迎来到我的漂亮网页 (Cloudflare Worker)!</h1>
+            <h1>欢迎来到我的漂亮也很好的网页 (Cloudflare Worker)!</h1>
             <p>这是一个使用 Cloudflare Worker 部署的简单网页。</p>
         </div>
     </body>
