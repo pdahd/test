@@ -17,8 +17,9 @@ jobs:
 
     - name: Download ffmpeg
       run: |
-        Invoke-WebRequest -Uri https://github.com/gyand/ffmpeg-windows/releases/download/latest/ffmpeg-latest-full.zip -OutFile ffmpeg-latest-full.zip
-        Expand-Archive -Path ffmpeg-latest-full.zip -DestinationPath ffmpeg
+        Invoke-WebRequest -Uri https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip -OutFile ffmpeg-latest.zip
+        Expand-Archive -Path ffmpeg-latest.zip -DestinationPath ffmpeg
+        Move-Item ffmpeg/*/bin/ffmpeg.exe .
     
     - name: Create input file
       run: |
