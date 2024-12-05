@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Download N_m3u8DL-CLI
       run: |
@@ -31,7 +31,8 @@ jobs:
         .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
         dir workdir
 
-    - name: Display output
-      run: |
-        $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
-        Get-Content "workdir\$timestamp\meta.json"
+    - name: Upload results
+      uses: actions/upload-artifact@v4
+      with:
+        name: m3u8-results
+        path: workdir/*
