@@ -2,6 +2,10 @@ name: Test N_m3u8DL-CLI
 
 on:
   workflow_dispatch:
+    inputs:
+      trailer_url:
+        description: '请输入预告片链接'
+        required: true
 
 jobs:
   test-m3u8dl-cli:
@@ -21,17 +25,29 @@ jobs:
         Expand-Archive -Path ffmpeg-latest.zip -DestinationPath ffmpeg
         Move-Item ffmpeg/*/bin/ffmpeg.exe .
 
-    - name: Create input file
+    - name: Process input URL
       run: |
-        echo "https://play-edge.itunes.apple.com/WebObjects/MZPlayLocal.woa/hls/subscription/playlist.m3u8?cc=US&svcId=tvs.vds.4105&a=1651530204&isExternal=true&brandId=tvs.sbd.4000&id=529784868&l=en-US&aec=UHD" > input.txt
+        $trailerUrl = "${{ github.event.inputs.trailer_url }}"
+        $processedUrl = $trailerUrl -replace "&amp;", "&"
+        echo $processedUrl > input.txt
 
-    - name: Download highest quality video and audio
+    - name: Test N_m3u8DL-CLI
       run: |
         mkdir workdir
-        .\N_m3u8DL-CLI.exe "https://play-edge.itunes.apple.com/WebObjects/MZPlayLocal.woa/hls/subscription/playlist.m3u8?cc=US&svcId=tvs.vds.4105&a=1651530204&isExternal=true&brandId=tvs.sbd.4000&id=529784868&l=en-US&aec=UHD" --workDir workdir --saveName "output" --enableMuxFastStart --enableBinaryMerge --maxThreads 32 --headers "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
+        dir workdir
 
-    - name: Upload results
+    - name: Download and merge highest quality streams
+      run: |
+        $videoUrl = "https://vod-ak-aoc.tv.apple.com/itunes-assets/VideoPreview123/v4/b5/3a/21/b53a21a4-256d-70cc-4450-099220b9f531/P529784868_A1651530204_video_gr798_HDR10Plus_3840x1606_-.m3u8"
+        $audioUrl = "https://vod-ap-aoc.tv.apple.com/itunes-assets/VideoPreview123/v4/8b/ba/2e/8bba2e8b-25d8-e9e1-54c7-7061b8171dac/P529784868_A1651530204_audio_en_gr2448_mp4a-A6.m3u8"
+        .\ffmpeg.exe -i $videoUrl -c copy video.mp4
+        .\ffmpeg.exe -i $audioUrl -c copy audio.mp4
+        .\ffmpeg.exe -i video.mp4 -i audio.mp4 -c copy final_output.mp4
+        Remove-Item video.mp4, audio.mp4
+
+    - name: Upload final output
       uses: actions/upload-artifact@v4
       with:
-        name: downloaded-media
-        path: workdir/*
+        name: final_output
+        path: final_output.mp4
