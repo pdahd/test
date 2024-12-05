@@ -23,7 +23,7 @@ jobs:
 
     - name: Create input file
       run: |
-        echo "https://play-edge.itunes.apple.com/WebObjects/MZPlayLocal.woa/hls/subscription/playlist.m3u8?cc=US&amp;svcId=tvs.vds.4105&amp;a=1651530204&amp;isExternal=true&amp;brandId=tvs.sbd.4000&amp;id=529784868&amp;l=en-US&amp;aec=UHD" > input.txt
+        echo "https://play-edge.itunes.apple.com/WebObjects/MZPlayLocal.woa/hls/subscription/playlist.m3u8?cc=US&svcId=tvs.vds.4105&a=1651530204&isExternal=true&brandId=tvs.sbd.4000&id=529784868&l=en-US&aec=UHD" > input.txt
 
     - name: Test N_m3u8DL-CLI
       run: |
