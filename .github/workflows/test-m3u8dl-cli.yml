@@ -27,8 +27,8 @@ jobs:
 
     - name: Test N_m3u8DL-CLI
       run: |
-        .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly
+        .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir .
 
     - name: Display output
       run: |
-        Get-Content meta.json
+        Get-Content .\meta.json
