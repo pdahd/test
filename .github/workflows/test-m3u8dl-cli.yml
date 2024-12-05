@@ -33,4 +33,5 @@ jobs:
 
     - name: Display output
       run: |
-        Get-Content workdir\meta.json
+        $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
+        Get-Content "workdir\$timestamp\meta.json"
