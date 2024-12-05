@@ -15,6 +15,11 @@ jobs:
       run: |
         Invoke-WebRequest -Uri https://github.com/nilaoda/N_m3u8DL-CLI/releases/download/3.0.2/N_m3u8DL-CLI_v3.0.2.exe -OutFile N_m3u8DL-CLI.exe
 
+    - name: Download ffmpeg
+      run: |
+        Invoke-WebRequest -Uri https://github.com/gyand/ffmpeg-windows/releases/download/latest/ffmpeg-latest-full.zip -OutFile ffmpeg-latest-full.zip
+        Expand-Archive -Path ffmpeg-latest-full.zip -DestinationPath ffmpeg
+    
     - name: Create input file
       run: |
         echo "https://play-edge.itunes.apple.com/WebObjects/MZPlayLocal.woa/hls/subscription/playlist.m3u8?cc=US&svcId=tvs.vds.4105&a=1651530204&isExternal=true&brandId=tvs.sbd.4000&id=529784868&l=en-US&aec=UHD" > input.txt
