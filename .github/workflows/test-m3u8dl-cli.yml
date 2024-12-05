@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v2
 
     - name: Download N_m3u8DL-CLI
       run: |
@@ -20,15 +20,16 @@ jobs:
         Invoke-WebRequest -Uri https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip -OutFile ffmpeg-latest.zip
         Expand-Archive -Path ffmpeg-latest.zip -DestinationPath ffmpeg
         Move-Item ffmpeg/*/bin/ffmpeg.exe .
-    
+
     - name: Create input file
       run: |
         echo "https://play-edge.itunes.apple.com/WebObjects/MZPlayLocal.woa/hls/subscription/playlist.m3u8?cc=US&svcId=tvs.vds.4105&a=1651530204&isExternal=true&brandId=tvs.sbd.4000&id=529784868&l=en-US&aec=UHD" > input.txt
 
     - name: Test N_m3u8DL-CLI
       run: |
-        .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir .
+        mkdir workdir
+        .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
 
     - name: Display output
       run: |
-        Get-Content .\meta.json
+        Get-Content workdir\meta.json
