@@ -28,7 +28,7 @@ jobs:
     - name: Process input URL
       run: |
         $trailerUrl = "${{ github.event.inputs.trailer_url }}"
-        $processedUrl = $trailerUrl -replace "&amp;", "&"
+        $processedUrl = $trailerUrl -replace "amp;", ""
         echo $processedUrl > input.txt
 
     - name: Test N_m3u8DL-CLI
