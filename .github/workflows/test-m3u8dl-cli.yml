@@ -23,7 +23,7 @@ jobs:
 
     - name: Create input file
       run: |
-        echo "https://play.itunes.apple.com/WebObjects/MZPlay.woa/hls/playlist.m3u8?cc=US&amp;a=270007336&amp;id=62811679&amp;l=en-US&amp;aec=HD" > input.txt
+        echo "https://play.itunes.apple.com/WebObjects/MZPlay.woa/hls/playlist.m3u8?cc=US&a=270007336&id=62811679&l=en-US&aec=HD" > input.txt
 
     - name: Test N_m3u8DL-CLI
       run: |
