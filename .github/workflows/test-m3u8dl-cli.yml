@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Download N_m3u8DL-CLI
       run: |
@@ -41,7 +41,7 @@ jobs:
         Remove-Item video.mp4, audio.mp4
 
     - name: Upload final output
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: final_output
         path: final_output.mp4
