@@ -23,16 +23,15 @@ jobs:
 
     - name: Create input file
       run: |
-        echo "https://play.itunes.apple.com/WebObjects/MZPlay.woa/hls/playlist.m3u8?cc=US&a=270007336&id=62811679&l=en-US&aec=HD" > input.txt
+        echo "https://play-edge.itunes.apple.com/WebObjects/MZPlayLocal.woa/hls/subscription/playlist.m3u8?cc=US&svcId=tvs.vds.4105&a=1651530204&isExternal=true&brandId=tvs.sbd.4000&id=529784868&l=en-US&aec=UHD" > input.txt
 
-    - name: Test N_m3u8DL-CLI
+    - name: Download highest quality video and audio
       run: |
         mkdir workdir
-        .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
-        dir workdir
+        .\N_m3u8DL-CLI.exe -i $(Get-Content input.txt) --workDir workdir --enableMuxFastStart --enableBinaryMerge --autoSelect
 
     - name: Upload results
       uses: actions/upload-artifact@v4
       with:
-        name: m3u8-results
+        name: downloaded-media
         path: workdir/*
