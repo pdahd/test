@@ -29,6 +29,7 @@ jobs:
       run: |
         mkdir workdir
         .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
+        dir workdir
 
     - name: Display output
       run: |
