@@ -39,3 +39,9 @@ jobs:
         .\ffmpeg.exe -i $audioUrl -c copy audio.mp4
         .\ffmpeg.exe -i video.mp4 -i audio.mp4 -c copy final_output.mp4
         Remove-Item video.mp4, audio.mp4
+
+    - name: Upload final output
+      uses: actions/upload-artifact@v2
+      with:
+        name: final_output
+        path: final_output.mp4
