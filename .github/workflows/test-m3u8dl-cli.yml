@@ -35,3 +35,26 @@ jobs:
       run: |
         $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
         Get-Content "workdir\$timestamp\raw.m3u8"
+
+    - name: Extract highest quality streams
+      run: |
+        $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
+        $rawFile = Get-Content "workdir\$timestamp\raw.m3u8"
+        $highestVideo = $rawFile | Select-String -Pattern "CODECS=.*RESOLUTION=3840x1606" -Context 0,1 | Select-Object -Last 1
+        $highestAudio = $rawFile | Select-String -Pattern "AUDIO=.*audio-atmos" -Context 0,1 | Select-Object -Last 1
+        $videoUrl = $highestVideo.Context.PostContext[0]
+        $audioUrl = $highestAudio.Context.PostContext[0]
+        echo "Highest quality video URL: $videoUrl" > highest_quality_urls.txt
+        echo "Highest quality audio URL: $audioUrl" >> highest_quality_urls.txt
+
+    - name: Display highest quality URLs
+      run: |
+        Get-Content highest_quality_urls.txt
+
+    - name: Download and merge highest quality streams
+      run: |
+        $urls = Get-Content highest_quality_urls.txt
+        $videoUrl = $urls[0].Substring(27)  # Removing "Highest quality video URL: "
+        $audioUrl = $urls[1].Substring(27)  # Removing "Highest quality audio URL: "
+        ffmpeg -i $videoUrl -c copy video.mp4 && ffmpeg -i $audioUrl -c copy audio.mp4 && ffmpeg -i video.mp4 -i audio.mp4 -c copy final_output.mp4
+        Remove-Item video.mp4, audio.mp4
