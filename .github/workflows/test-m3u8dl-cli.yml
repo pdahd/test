@@ -5,7 +5,7 @@ on:
     inputs:
       trailer_url:
         description: '解析视频链接的可用流信息'
-        required: false
+        required: true
       best_video_m3u8:
         description: '请输入最佳质量视频流的m3u8链接'
         required: false
@@ -53,20 +53,17 @@ jobs:
         $trailerUrl = "${{ github.event.inputs.trailer_url }}"
         $processedUrl = $trailerUrl -replace "amp;", ""
         echo $processedUrl > input.txt
-      continue-on-error: true
 
     - name: Test N_m3u8DL-CLI
       run: |
         mkdir workdir
         .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
         dir workdir
-      continue-on-error: true
 
     - name: Display raw.m3u8 content
       run: |
         $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name 
         Get-Content "workdir\$timestamp\raw.m3u8"
-      continue-on-error: true
     
     - name: Conditional download and merge
       if: ${{ github.event.inputs.enable_download == '启用' }}
