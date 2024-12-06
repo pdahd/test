@@ -8,17 +8,17 @@ on:
         required: true
       best_video_m3u8:
         description: '请输入最佳质量视频的m3u8链接'
-        required: true
+        required: false
       best_audio_m3u8:
         description: '请输入最佳音频的m3u8链接'
-        required: true
+        required: false
       enable_download:
         description: '是否启用下载步骤'
         required: true
         type: choice
         options:
-          - '启用'
           - '关闭'
+          - '启用'
 
 jobs:
   test-m3u8dl-cli:
@@ -55,14 +55,36 @@ jobs:
       run: |
         $videoUrl = "${{ github.event.inputs.best_video_m3u8 }}"
         $audioUrl = "${{ github.event.inputs.best_audio_m3u8 }}"
-        .\ffmpeg.exe -i $videoUrl -c copy video.mp4
-        .\ffmpeg.exe -i $audioUrl -c copy audio.mp4
-        .\ffmpeg.exe -i video.mp4 -i audio.mp4 -c copy final_output.mp4
-        Remove-Item video.mp4, audio.mp4
+        if ($videoUrl -ne "") {
+          .\ffmpeg.exe -i $videoUrl -c copy video.mp4
+        }
+        if ($audioUrl -ne "") {
+          .\ffmpeg.exe -i $audioUrl -c copy audio.mp4
+        }
+        if ($videoUrl -ne "" -and $audioUrl -ne "") {
+          .\ffmpeg.exe -i video.mp4 -i audio.mp4 -c copy final_output.mp4
+          Remove-Item video.mp4, audio.mp4
+        }
 
     - name: Upload final output
+      if: ${{ github.event.inputs.enable_download == '启用' }}
+      run: |
+        $videoUrl = "${{ github.event.inputs.best_video_m3u8 }}"
+        $audioUrl = "${{ github.event.inputs.best_audio_m3u8 }}"
+        if ($videoUrl -ne "" -and $audioUrl -ne "") {
+          echo "Uploading final_output.mp4"
+          mv final_output.mp4 output.mp4
+        } elseif ($videoUrl -ne "") {
+          echo "Uploading video.mp4"
+          mv video.mp4 output.mp4
+        } elseif ($audioUrl -ne "") {
+          echo "Uploading audio.mp4"
+          mv audio.mp4 output.mp4
+        }
+
+    - name: Upload output
       if: ${{ github.event.inputs.enable_download == '启用' }}
       uses: actions/upload-artifact@v4
       with:
         name: final_output
-        path: final_output.mp4
+        path: output.mp4
