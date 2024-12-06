@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       trailer_url:
-        description: '解析视频链接的可用流信息'
+        description: '解析视频链接的流信息'
         required: false
       best_video_m3u8:
         description: '请输入最佳质量视频流的m3u8链接'
