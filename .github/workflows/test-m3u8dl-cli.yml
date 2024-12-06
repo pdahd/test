@@ -67,6 +67,20 @@ jobs:
         $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name 
         Get-Content "workdir\$timestamp\raw.m3u8"
     
+    - name: Find best quality streams 
+      if: ${{ github.event.inputs.trailer_url != '' }} 
+      run: | 
+        $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name 
+        Rename-Item "workdir\$timestamp\raw.m3u8" -NewName "workdir\$timestamp\raw.m3u8.txt" 
+        $rawFile = Get-Content "workdir\$timestamp\raw.m3u8.txt" 
+        $bestVideo = $rawFile | Select-String -Pattern 'RESOLUTION=\d+x\d+' -Context 0,1 | ForEach-Object { $_ -match 'RESOLUTION=(\d+)x(\d+).*BANDWIDTH=(\d+).*' } | Sort-Object { [int]$matches[1] }, { [int]$matches[2] }, { [int]$matches[3] } -Descending | Select-Object -First 1 
+        $bestAudio = $rawFile | Select-String -Pattern 'BANDWIDTH=\d+' -Context 0,1 | Where-Object { $_ -match 'BANDWIDTH=(\d+)' -and $_ -match 'TYPE=AUDIO' } | Sort-Object { [int]$matches[1] } -Descending | Select-Object -First 1 
+        $bestVideoUrl = $bestVideo.Context.PostContext[0] 
+        $bestAudioUrl = $bestAudio.Context.PostContext[0] 
+        echo "Best quality video URL: $bestVideoUrl" > best_quality_urls.txt 
+        echo "Best quality audio URL: $bestAudioUrl" >> best_quality_urls.txt 
+        Get-Content best_quality_urls.txt
+    
     - name: Conditional download and merge
       if: ${{ github.event.inputs.enable_download == '启用' }}
       run: |
