@@ -96,14 +96,16 @@ jobs:
         $audioLinks = $rawFileContent | Select-String -Pattern "https.*_audio_en_.*gr\d+.*m3u8" | ForEach-Object { $_.Matches.Value }
         $bestAudioLink = $audioLinks | Sort-Object { $_ -replace ".*gr(\d+).*", '$1' -as [int] } -Descending | Select-Object -First 1
 
-        echo "Best Video Stream URL: $bestVideoLink"
+        echo "##[set-output name=best_video_link;]$bestVideoLink" 
+        echo "##[set-output name=best_audio_link;]$bestAudioLink" 
+        echo "Best Video Stream URL: $bestVideoLink" 
         echo "Best Audio Stream URL: $bestAudioLink"
     
     - name: Conditional download and merge
       if: ${{ github.event.inputs.enable_download == '启用' }}
       run: |
-        $videoUrl = if(${{ github.event.inputs.download_mode == '自动' }}) { "${{ steps.filter.results.bestVideoLink }}" } else { "${{ github.event.inputs.best_video_m3u8 }}" }
-        $audioUrl = if(${{ github.event.inputs.download_mode == '自动' }}) { "${{ steps.filter.results.bestAudioLink }}" } else { "${{ github.event.inputs.best_audio_m3u8 }}" }
+        $videoUrl = if(${{ github.event.inputs.download_mode == '自动' }}) { "${{ steps.filter.outputs.best_video_link }}" } else { "${{ github.event.inputs.best_video_m3u8 }}" } 
+        $audioUrl = if(${{ github.event.inputs.download_mode == '自动' }}) { "${{ steps.filter.outputs.best_audio_link }}" } else { "${{ github.event.inputs.best_audio_m3u8 }}" } 
         $subtitlesUrl = "${{ github.event.inputs.subtitles_m3u8 }}"
         $embedSubtitles = "${{ github.event.inputs.embed_subtitles }}"
         if ($videoUrl -ne "") {
