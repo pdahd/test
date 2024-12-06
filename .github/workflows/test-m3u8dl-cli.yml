@@ -79,7 +79,7 @@ jobs:
         $bestVideoLink = $videoLinks | Sort-Object { $_ -replace ".*gr(\d+).*", '$1' -as [int] } -Descending | Select-Object -First 1
 
         # 筛选最佳质量的音频流链接
-        $audioLinks = $rawFileContent | Select-String -Pattern "https.*_audio_.*gr\d+.*m3u8" | ForEach-Object { $_.Matches.Value }
+        $audioLinks = $rawFileContent | Select-String -Pattern "https.*_audio_en_.*gr\d+.*m3u8" | ForEach-Object { $_.Matches.Value }
         $bestAudioLink = $audioLinks | Sort-Object { $_ -replace ".*gr(\d+).*", '$1' -as [int] } -Descending | Select-Object -First 1
 
         echo "Best Video Stream URL: $bestVideoLink"
