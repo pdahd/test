@@ -124,7 +124,7 @@ jobs:
         }
         if ($subtitlesUrl -ne "") {
           echo "Uploading subtitles.srt"
-          mv subtitles.srt only.srt
+          mv subtitles.srt subtitles.srt
         }
 
     - name: Upload output
@@ -140,7 +140,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: subtitles
-        path: only.srt
+        path: subtitles.srt
       continue-on-error: true
 
     - name: Upload results
