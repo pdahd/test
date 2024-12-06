@@ -6,6 +6,19 @@ on:
       trailer_url:
         description: '请输入预告片链接'
         required: true
+      best_video_m3u8:
+        description: '请输入最佳质量视频的m3u8链接'
+        required: true
+      best_audio_m3u8:
+        description: '请输入最佳音频的m3u8链接'
+        required: true
+      enable_download:
+        description: '是否启用下载步骤'
+        required: true
+        type: choice
+        options:
+          - '启用'
+          - '关闭'
 
 jobs:
   test-m3u8dl-cli:
@@ -37,23 +50,19 @@ jobs:
         .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
         dir workdir
 
-    - name: Download and merge highest quality streams
+    - name: Conditional download and merge
+      if: ${{ github.event.inputs.enable_download == '启用' }}
       run: |
-        $videoUrl = "https://vod-ak-aoc.tv.apple.com/itunes-assets/VideoPreview123/v4/b5/3a/21/b53a21a4-256d-70cc-4450-099220b9f531/P529784868_A1651530204_video_gr798_HDR10Plus_3840x1606_-.m3u8"
-        $audioUrl = "https://vod-ap-aoc.tv.apple.com/itunes-assets/VideoPreview123/v4/8b/ba/2e/8bba2e8b-25d8-e9e1-54c7-7061b8171dac/P529784868_A1651530204_audio_en_gr2448_mp4a-A6.m3u8"
+        $videoUrl = "${{ github.event.inputs.best_video_m3u8 }}"
+        $audioUrl = "${{ github.event.inputs.best_audio_m3u8 }}"
         .\ffmpeg.exe -i $videoUrl -c copy video.mp4
         .\ffmpeg.exe -i $audioUrl -c copy audio.mp4
         .\ffmpeg.exe -i video.mp4 -i audio.mp4 -c copy final_output.mp4
         Remove-Item video.mp4, audio.mp4
 
     - name: Upload final output
+      if: ${{ github.event.inputs.enable_download == '启用' }}
       uses: actions/upload-artifact@v4
       with:
         name: final_output
         path: final_output.mp4
-
-    - name: Upload results
-      uses: actions/upload-artifact@v4
-      with:
-        name: m3u8-results
-        path: workdir/*
