@@ -75,7 +75,7 @@ jobs:
         $rawFileContent = Get-Content $rawFilePath
 
         # 筛选最佳质量的视频流链接
-        $videoLinks = $rawFileContent | Select-String -Pattern "https.*_video_.*gr\d+.*m3u8" | ForEach-Object { $_.Matches.Value }
+        $videoLinks = $rawFileContent | Select-String -Pattern "https.*_video_.*gr\d+_dovi.*m3u8" | ForEach-Object { $_.Matches.Value }
         $bestVideoLink = $videoLinks | Sort-Object { $_ -replace ".*gr(\d+).*", '$1' -as [int] } -Descending | Select-Object -First 1
 
         # 筛选最佳质量的音频流链接
