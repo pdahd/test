@@ -5,7 +5,7 @@ on:
     inputs:
       trailer_url:
         description: '解析视频链接的可用流信息'
-        required: true
+        required: false
       best_video_m3u8:
         description: '请输入最佳质量视频流的m3u8链接'
         required: false
@@ -55,12 +55,14 @@ jobs:
         echo $processedUrl > input.txt
 
     - name: Test N_m3u8DL-CLI
+      if: ${{ github.event.inputs.trailer_url != '' }}
       run: |
         mkdir workdir
         .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
         dir workdir
 
     - name: Display raw.m3u8 content
+      if: ${{ github.event.inputs.trailer_url != '' }}
       run: |
         $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name 
         Get-Content "workdir\$timestamp\raw.m3u8"
@@ -122,7 +124,7 @@ jobs:
           echo "Uploading audio.m4a"
           mv audio.m4a output.m4a
         }
-        if ($subtitlesUrl -ne "") {
+        if ($subtitlesUrl -ne "" -and $embedSubtitles -ne '是') {
           echo "Uploading subtitles.srt"
           mv subtitles.srt subtitles.srt
         }
@@ -137,14 +139,15 @@ jobs:
 
     - name: Upload subtitles
       if: ${{ github.event.inputs.enable_download == '启用' && github.event.inputs.embed_subtitles == '否' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4 
       with:
-        name: subtitles
-        path: subtitles.srt
+        name: subtitles 
+        path: subtitles.srt 
       continue-on-error: true
 
-    - name: Upload results
-      uses: actions/upload-artifact@v4
-      with:
-        name: m3u8-results
+    - name: Upload results 
+      if: ${{ github.event.inputs.trailer_url != '' }} 
+      uses: actions/upload-artifact@v4 
+      with: 
+        name: m3u8-results 
         path: workdir/*
