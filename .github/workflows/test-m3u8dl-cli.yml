@@ -4,13 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       trailer_url:
-        description: '请输入预告片链接'
+        description: '请输入视频链接解析可用流信息'
         required: true
       best_video_m3u8:
         description: '请输入最佳质量视频的m3u8链接'
         required: false
       best_audio_m3u8:
         description: '请输入最佳音频的m3u8链接'
+        required: false
+      subtitles_m3u8:
+        description: '请输入字幕的m3u8链接'
         required: false
       enable_download:
         description: '是否启用下载步骤'
@@ -19,6 +22,13 @@ on:
         options:
           - '关闭'
           - '启用'
+      embed_subtitles:
+        description: '是否封装字幕至视频中'
+        required: false
+        type: choice
+        options:
+          - '否'
+          - '是'
 
 jobs:
   test-m3u8dl-cli:
@@ -55,15 +65,26 @@ jobs:
       run: |
         $videoUrl = "${{ github.event.inputs.best_video_m3u8 }}"
         $audioUrl = "${{ github.event.inputs.best_audio_m3u8 }}"
+        $subtitlesUrl = "${{ github.event.inputs.subtitles_m3u8 }}"
+        $embedSubtitles = "${{ github.event.inputs.embed_subtitles }}"
         if ($videoUrl -ne "") {
           .\ffmpeg.exe -i $videoUrl -c copy video.mp4
         }
         if ($audioUrl -ne "") {
-          .\ffmpeg.exe -i $audioUrl -c copy audio.mp4
+          .\ffmpeg.exe -i $audioUrl -c copy audio.m4a
+        }
+        if ($subtitlesUrl -ne "") {
+          .\ffmpeg.exe -i $subtitlesUrl -c copy subtitles.vtt
+          .\ffmpeg.exe -i subtitles.vtt subtitles.srt
+          Remove-Item subtitles.vtt
         }
         if ($videoUrl -ne "" -and $audioUrl -ne "") {
-          .\ffmpeg.exe -i video.mp4 -i audio.mp4 -c copy final_output.mp4
-          Remove-Item video.mp4, audio.mp4
+          if ($embedSubtitles -eq '是' -and $subtitlesUrl -ne "") {
+            .\ffmpeg.exe -i video.mp4 -i audio.m4a -i subtitles.srt -c copy final_output.mkv
+          } else {
+            .\ffmpeg.exe -i video.mp4 -i audio.m4a -c copy final_output.mp4
+          }
+          Remove-Item video.mp4, audio.m4a
         }
 
     - name: Upload final output
@@ -71,15 +92,26 @@ jobs:
       run: |
         $videoUrl = "${{ github.event.inputs.best_video_m3u8 }}"
         $audioUrl = "${{ github.event.inputs.best_audio_m3u8 }}"
+        $subtitlesUrl = "${{ github.event.inputs.subtitles_m3u8 }}"
+        $embedSubtitles = "${{ github.event.inputs.embed_subtitles }}"
         if ($videoUrl -ne "" -and $audioUrl -ne "") {
-          echo "Uploading final_output.mp4"
-          mv final_output.mp4 output.mp4
+          if ($embedSubtitles -eq '是' -and $subtitlesUrl -ne "") {
+            echo "Uploading final_output.mkv"
+            mv final_output.mkv output.mkv
+          } else {
+            echo "Uploading final_output.mp4"
+            mv final_output.mp4 output.mp4
+          }
         } elseif ($videoUrl -ne "") {
           echo "Uploading video.mp4"
           mv video.mp4 output.mp4
         } elseif ($audioUrl -ne "") {
-          echo "Uploading audio.mp4"
-          mv audio.mp4 output.mp4
+          echo "Uploading audio.m4a"
+          mv audio.m4a output.m4a
+        }
+        if ($subtitlesUrl -ne "") {
+          echo "Uploading subtitles.srt"
+          mv subtitles.srt output.srt
         }
 
     - name: Upload output
@@ -87,4 +119,13 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: final_output
-        path: output.mp4
+        path: output.*
+      continue-on-error: true
+
+    - name: Upload subtitles
+      if: ${{ github.event.inputs.enable_download == '启用' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: subtitles
+        path: output.srt
+      continue-on-error: true
