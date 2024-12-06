@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       trailer_url:
-        description: '解析视频链接流信息'
+        description: '解析视频链接的流信息'
         required: true
       best_video_m3u8:
         description: '请输入最佳质量视频流的m3u8链接'
@@ -29,20 +29,20 @@ on:
         options:
           - '否'
           - '是'
-      download_mode: 
-        description: '下载步骤选择最佳质量链接' 
-        required: false 
-        type: choice 
-        options: 
-          - '自动' 
-          - '手动'
-      upload_results: 
-        description: '是否上传解析信息' 
-        required: false 
-        type: choice 
-        options: 
-          - '否' 
+      upload_results:
+        description: '是否上传解析信息'
+        required: false
+        type: choice
+        options:
+          - '否'
           - '是'
+      download_mode:
+        description: '下载步骤选择最佳质量链接'
+        required: false
+        type: choice
+        options:
+          - '自动'
+          - '手动'
 
 jobs:
   test-m3u8dl-cli:
@@ -102,8 +102,8 @@ jobs:
     - name: Conditional download and merge
       if: ${{ github.event.inputs.enable_download == '启用' }}
       run: |
-        $videoUrl = if(${{ github.event.inputs.download_mode == '自动' }}) { "${{ steps.filter.results.bestVideoLink }}" } else { "${{ github.event.inputs.best_video_m3u8 }}" } 
-        $audioUrl = if(${{ github.event.inputs.download_mode == '自动' }}) { "${{ steps.filter.results.bestAudioLink }}" } else { "${{ github.event.inputs.best_audio_m3u8 }}" } 
+        $videoUrl = if(${{ github.event.inputs.download_mode == '自动' }}) { "${{ steps.filter.results.bestVideoLink }}" } else { "${{ github.event.inputs.best_video_m3u8 }}" }
+        $audioUrl = if(${{ github.event.inputs.download_mode == '自动' }}) { "${{ steps.filter.results.bestAudioLink }}" } else { "${{ github.event.inputs.best_audio_m3u8 }}" }
         $subtitlesUrl = "${{ github.event.inputs.subtitles_m3u8 }}"
         $embedSubtitles = "${{ github.event.inputs.embed_subtitles }}"
         if ($videoUrl -ne "") {
@@ -131,55 +131,55 @@ jobs:
 
     - name: Upload final output
       if: ${{ github.event.inputs.enable_download == '启用' }}
-      run: |
-        $videoUrl = "${{ github.event.inputs.best_video_m3u8 }}"
-        $audioUrl = "${{ github.event.inputs.best_audio_m3u8 }}"
-        $subtitlesUrl = "${{ github.event.inputs.subtitles_m3u8 }}"
-        $embedSubtitles = "${{ github.event.inputs.embed_subtitles }}"
-        if ($videoUrl -ne "" -and $audioUrl -ne "") {
-          if ($embedSubtitles -eq '是' -and $subtitlesUrl -ne "") {
-            echo "Uploading final_output.mkv"
+      run: | 
+        $videoUrl = if(${{ github.event.inputs.download_mode == '自动' }}) { "${{ steps.filter.results.bestVideoLink }}" } else { "${{ github.event.inputs.best_video_m3u8 }}" } 
+        $audioUrl = if(${{ github.event.inputs.download_mode == '自动' }}) { "${{ steps.filter.results.bestAudioLink }}" } else { "${{ github.event.inputs.best_audio_m3u8 }}" } 
+        $subtitlesUrl = "${{ github.event.inputs.subtitles_m3u8 }}" 
+        $embedSubtitles = "${{ github.event.inputs.embed_subtitles }}" 
+        if ($videoUrl -ne "" -and $audioUrl -ne "") { 
+          if ($embedSubtitles -eq '是' -and $subtitlesUrl -ne "") { 
+            echo "Uploading final_output.mkv" 
             mv final_output.mkv output.mkv
-          } else {
-            echo "Uploading final_output.mp4"
-            mv final_output.mp4 output.mp4
-          }
-        } elseif ($videoUrl -ne "") {
-          if ($embedSubtitles -eq '是' -and $subtitlesUrl -ne "") {
-            echo "Uploading final_output.mkv"
-            mv final_output.mkv output.mkv
-          } else {
-            echo "Uploading video.mp4"
-            mv video.mp4 output.mp4
-          }
-        } elseif ($audioUrl -ne "") {
-          echo "Uploading audio.m4a"
-          mv audio.m4a output.m4a
-        }
-        if ($subtitlesUrl -ne "" -and $embedSubtitles -ne '是') {
-          echo "Uploading subtitles.srt"
-          mv subtitles.srt subtitles.srt
+          } else { 
+            echo "Uploading final_output.mp4" 
+            mv final_output.mp4 output.mp4 
+          } 
+        } elseif ($videoUrl -ne "") { 
+          if ($embedSubtitles -eq '是' -and $subtitlesUrl -ne "") { 
+            echo "Uploading final_output.mkv" 
+            mv final_output.mkv output.mkv 
+          } else { 
+            echo "Uploading video.mp4" 
+            mv video.mp4 output.mp4 
+          } 
+        } elseif ($audioUrl -ne "") { 
+          echo "Uploading audio.m4a" 
+          mv audio.m4a output.m4a 
+        } 
+        if ($subtitlesUrl -ne "" -and $embedSubtitles -ne '是') { 
+          echo "Uploading subtitles.srt" 
+          mv subtitles.srt subtitles.srt 
         }
 
-    - name: Upload output
-      if: ${{ github.event.inputs.enable_download == '启用' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: final_output
-        path: output.*
+    - name: Upload output 
+      if: ${{ github.event.inputs.enable_download == '启用' }} 
+      uses: actions/upload-artifact@v4 
+      with: 
+        name: final_output 
+        path: output.* 
       continue-on-error: true
 
     - name: Upload subtitles
       if: ${{ github.event.inputs.enable_download == '启用' && github.event.inputs.embed_subtitles == '否' }}
-      uses: actions/upload-artifact@v4 
+      uses: actions/upload-artifact@v4
       with:
-        name: subtitles 
-        path: subtitles.srt 
+        name: subtitles
+        path: subtitles.srt
       continue-on-error: true
 
-    - name: Upload results 
-      if: ${{ github.event.inputs.trailer_url != '' }} 
-      uses: actions/upload-artifact@v4 
-      with: 
-        name: m3u8-results 
+    - name: Upload results
+      if: ${{ github.event.inputs.trailer_url != '' && github.event.inputs.upload_results == '是' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: m3u8-results
         path: workdir/*
