@@ -89,10 +89,10 @@ jobs:
           } else {
             .\ffmpeg.exe -i video.mp4 -i audio.m4a -c copy final_output.mp4
           }
-          Remove-Item video.mp4, audio.m4a
+          Remove-Item video.mp4, audio.m4a, output.srt
         } elseif ($videoUrl -ne "" -and $embedSubtitles -eq '是' -and $subtitlesUrl -ne "") {
           .\ffmpeg.exe -i video.mp4 -i subtitles.srt -c copy final_output.mkv
-          Remove-Item video.mp4
+          Remove-Item video.mp4, output.srt
         }
 
     - name: Upload final output
