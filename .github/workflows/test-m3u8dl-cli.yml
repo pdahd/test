@@ -76,11 +76,11 @@ jobs:
 
         # 筛选最佳质量的视频流链接
         $videoLinks = $rawFileContent | Select-String -Pattern "https.*video.*gr\d+.*m3u8" | ForEach-Object { $_.Matches.Value }
-        $bestVideoLink = $videoLinks | Sort-Object { [int]($_.Match.Value -match "gr(\d+)" | Out-Null ; $matches[1]) } -Descending | Select-Object -First 1
+        $bestVideoLink = $videoLinks | Sort-Object { $_ -replace ".*gr(\d+).*", '$1' -as [int] } -Descending | Select-Object -First 1
 
         # 筛选最佳质量的音频流链接
         $audioLinks = $rawFileContent | Select-String -Pattern "https.*audio.*gr\d+.*m3u8" | ForEach-Object { $_.Matches.Value }
-        $bestAudioLink = $audioLinks | Sort-Object { [int]($_.Match.Value -match "gr(\d+)" | Out-Null ; $matches[1]) } -Descending | Select-Object -First 1
+        $bestAudioLink = $audioLinks | Sort-Object { $_ -replace ".*gr(\d+).*", '$1' -as [int] } -Descending | Select-Object -First 1
 
         echo "Best Video Stream URL: $bestVideoLink"
         echo "Best Audio Stream URL: $bestAudioLink"
