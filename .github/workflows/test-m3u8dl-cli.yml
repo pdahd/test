@@ -100,8 +100,8 @@ jobs:
         echo "Best Video Stream URL: $bestVideoLink"
         echo "Best Audio Stream URL: $bestAudioLink"
         
-        echo "bestVideoLink=$bestVideoLink" >> $GITHUB_ENV
-        echo "bestAudioLink=$bestAudioLink" >> $GITHUB_ENV
+        echo "bestVideoLink=$bestVideoLink" >> $env:GITHUB_ENV
+        echo "bestAudioLink=$bestAudioLink" >> $env:GITHUB_ENV
       
     - name: Conditional download and merge
       if: ${{ github.event.inputs.enable_download == '启用' }}
