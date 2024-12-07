@@ -115,7 +115,7 @@ jobs:
           .\ffmpeg.exe -i $videoUrl -c copy video.mov
         }
         if ($audioUrl -ne "") {
-          .\ffmpeg.exe -i $audioUrl -c copy audio.mp4
+          .\ffmpeg.exe -i $audioUrl -c copy audio.ec3
         }
         if ($subtitlesUrl -ne "") {
           .\ffmpeg.exe -i $subtitlesUrl -c copy subtitles.vtt
@@ -124,11 +124,11 @@ jobs:
         }
         if ($videoUrl -ne "" -and $audioUrl -ne "") {
           if ($embedSubtitles -eq '是' -and $subtitlesUrl -ne "") {
-            .\ffmpeg.exe -i video.mov -i audio.mp4 -i subtitles.srt -c copy final_output.mov
+            .\ffmpeg.exe -i video.mov -i audio.ec3 -i subtitles.srt -c copy final_output.mov
           } else {
-            .\ffmpeg.exe -i video.mov -i audio.mp4 -c copy final_output.mov
+            .\ffmpeg.exe -i video.mov -i audio.ec3 -c copy final_output.mov
           }
-          Remove-Item video.mov, audio.mp4
+          Remove-Item video.mov, audio.ec3
         } elseif ($videoUrl -ne "" -and $embedSubtitles -eq '是' -and $subtitlesUrl -ne "") {
           .\ffmpeg.exe -i video.mov -i subtitles.srt -c copy final_output.mov
           Remove-Item video.mov
@@ -158,8 +158,8 @@ jobs:
             mv video.mov output.mov
           } 
         } elseif ($audioUrl -ne "") { 
-          echo "Uploading audio.mp4" 
-          mv audio.mp4 output.mp4
+          echo "Uploading audio.ec3" 
+          mv audio.ec3 output.ec3
         } 
         if ($subtitlesUrl -ne "" -and $embedSubtitles -ne '是') { 
           echo "Uploading subtitles.srt" 
