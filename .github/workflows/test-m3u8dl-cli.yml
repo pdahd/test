@@ -102,11 +102,18 @@ jobs:
         
         echo "bestVideoLink=$bestVideoLink" >> $GITHUB_ENV
         echo "bestAudioLink=$bestAudioLink" >> $GITHUB_ENV
+        # 调试
+        echo "Debug: bestVideoLink = $bestVideoLink"
+        echo "Debug: bestAudioLink = $bestAudioLink"
       
     
     - name: Conditional download and merge
       if: ${{ github.event.inputs.enable_download == '启用' }}
       run: |
+        # 调试输出，确认变量是否正确传递
+        echo "Debug: download_mode = ${{ github.event.inputs.download_mode }}"
+        echo "Debug: bestVideoLink = $env:bestVideoLink"
+        echo "Debug: bestAudioLink = $env:bestAudioLink"
         $videoUrl = if("${{ github.event.inputs.download_mode }}" -eq '自动') { "$env:bestVideoLink" } else { "${{ github.event.inputs.best_video_m3u8 }}" } 
         $audioUrl = if("${{ github.event.inputs.download_mode }}" -eq '自动') { "$env:bestAudioLink" } else { "${{ github.event.inputs.best_audio_m3u8 }}" } 
         $subtitlesUrl = "${{ github.event.inputs.subtitles_m3u8 }}"
