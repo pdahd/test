@@ -65,9 +65,24 @@ jobs:
     - name: Process input URL
       run: |
         $trailerUrl = "${{ github.event.inputs.trailer_url }}"
-        $processedUrl = $trailerUrl -replace "amp;", ""
+        # 获取输入链接的源代码
+        $sourceCode = Invoke-WebRequest -Uri $trailerUrl -UseBasicParsing | Select-Object -ExpandProperty Content
+        
+        # 提取包含 m3u8 的完整 HTML 硬编码链接
+        $m3u8Links = ($sourceCode | Select-String -Pattern 'https.*?\.m3u8.*?"') `
+                      -replace '&amp;', '&' `
+                      -replace '.*content="(https.*?\.m3u8.*?)".*', '$1'
+        
+        # 选择第一个匹配链接
+        if ($m3u8Links.Length -gt 0) {
+          $processedUrl = $m3u8Links[0]
+        } else {
+          throw "未找到包含 m3u8 的 HTML 硬编码链接！"
+        }
+        
+        echo "Found m3u8 URL: $processedUrl"
         echo $processedUrl > input.txt
-
+    
     - name: Test N_m3u8DL-CLI
       if: ${{ github.event.inputs.trailer_url != '' }}
       run: |
