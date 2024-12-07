@@ -112,7 +112,7 @@ jobs:
         $subtitlesUrl = "${{ github.event.inputs.subtitles_m3u8 }}"
         $embedSubtitles = "${{ github.event.inputs.embed_subtitles }}"
         if ($videoUrl -ne "") {
-          .\ffmpeg.exe -i $videoUrl -c copy video.mp4
+          .\ffmpeg.exe -i $videoUrl -c copy video.mkv
         }
         if ($audioUrl -ne "") {
           .\ffmpeg.exe -i $audioUrl -c copy audio.mp4
@@ -124,14 +124,14 @@ jobs:
         }
         if ($videoUrl -ne "" -and $audioUrl -ne "") {
           if ($embedSubtitles -eq '是' -and $subtitlesUrl -ne "") {
-            .\ffmpeg.exe -i video.mp4 -i audio.mp4 -i subtitles.srt -c copy final_output.mkv
+            .\ffmpeg.exe -i video.mkv -i audio.mp4 -i subtitles.srt -c copy final_output.mkv
           } else {
-            .\ffmpeg.exe -i video.mp4 -i audio.mp4 -c copy final_output.mp4
+            .\ffmpeg.exe -i video.mkv -i audio.mp4 -c copy final_output.mkv
           }
-          Remove-Item video.mp4, audio.mp4
+          Remove-Item video.mkv, audio.mp4
         } elseif ($videoUrl -ne "" -and $embedSubtitles -eq '是' -and $subtitlesUrl -ne "") {
-          .\ffmpeg.exe -i video.mp4 -i subtitles.srt -c copy final_output.mkv
-          Remove-Item video.mp4
+          .\ffmpeg.exe -i video.mkv -i subtitles.srt -c copy final_output.mkv
+          Remove-Item video.mkv
         }
 
     - name: Upload final output
@@ -146,19 +146,19 @@ jobs:
             echo "Uploading final_output.mkv" 
             mv final_output.mkv output.mkv
           } else { 
-            echo "Uploading final_output.mp4" 
-            mv final_output.mp4 output.mp4 
+            echo "Uploading final_output.mkv" 
+            mv final_output.mkv output.mkv
           } 
         } elseif ($videoUrl -ne "") { 
           if ($embedSubtitles -eq '是' -and $subtitlesUrl -ne "") { 
             echo "Uploading final_output.mkv" 
             mv final_output.mkv output.mkv 
           } else { 
-            echo "Uploading video.mp4" 
-            mv video.mp4 output.mp4 
+            echo "Uploading video.mkv" 
+            mv video.mkv output.mkv
           } 
         } elseif ($audioUrl -ne "") { 
-          echo "Uploading audio.m4a" 
+          echo "Uploading audio.mp4" 
           mv audio.mp4 output.mp4
         } 
         if ($subtitlesUrl -ne "" -and $embedSubtitles -ne '是') { 
