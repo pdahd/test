@@ -104,8 +104,9 @@ jobs:
         echo "Debug: GITHUB_OUTPUT = $env:GITHUB_OUTPUT"
         echo "Debug: GITHUB_WORKSPACE = $env:GITHUB_WORKSPACE"
         # 设置输出变量
-        echo "bestVideoLink=$bestVideoLink" >> $GITHUB_OUTPUT
-        echo "bestAudioLink=$bestAudioLink" >> $GITHUB_OUTPUT
+        echo "::set-output name=bestVideoLink::$bestVideoLink"
+        echo "::set-output name=bestAudioLink::$bestAudioLink"
+      
     
     - name: Conditional download and merge
       if: ${{ github.event.inputs.enable_download == '启用' }}
