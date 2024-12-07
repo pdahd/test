@@ -99,15 +99,13 @@ jobs:
 
         echo "Best Video Stream URL: $bestVideoLink"
         echo "Best Audio Stream URL: $bestAudioLink"
-
-        $bestVideoLink = [string]::Escape($bestVideoLink)
-        $bestAudioLink = [string]::Escape($bestAudioLink)
         
         echo "bestVideoLink=$bestVideoLink" >> $GITHUB_ENV
         echo "bestAudioLink=$bestAudioLink" >> $GITHUB_ENV
         
-        # 调试输出，确认变量是否正确写入到环境文件中
-        Get-Content $env:GITHUB_ENV
+        # 调试输出，确认变量是否正确写入到环境变量中
+        echo "Debug: env:bestVideoLink = $env:bestVideoLink"
+        echo "Debug: env:bestAudioLink = $env:bestAudioLink"
       
     
     - name: Conditional download and merge
