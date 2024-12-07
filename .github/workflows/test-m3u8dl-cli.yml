@@ -66,7 +66,7 @@ jobs:
       run: |
         $trailerUrl = "${{ github.event.inputs.trailer_url }}"
         # 获取输入链接的源代码
-        $sourceCode = Invoke-WebRequest -Uri $trailerUrl -UseBasicParsing | Select-Object -ExpandProperty Content
+        $sourceCode = curl -s "$trailerUrl"
         
         # 提取包含 m3u8 的完整 HTML 硬编码链接
         $m3u8Links = ($sourceCode | Select-String -Pattern 'https.*?\.m3u8.*?"') `
