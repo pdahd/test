@@ -159,7 +159,7 @@ jobs:
           } 
         } elseif ($audioUrl -ne "") { 
           echo "Uploading audio.m4a" 
-          mv audio.mp4 output.ec3
+          mv audio.mp4 output.mp4
         } 
         if ($subtitlesUrl -ne "" -and $embedSubtitles -ne '是') { 
           echo "Uploading subtitles.srt" 
