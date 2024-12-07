@@ -99,11 +99,7 @@ jobs:
 
         echo "Best Video Stream URL: $bestVideoLink"
         echo "Best Audio Stream URL: $bestAudioLink"
-        echo "Debug: bestVideoLink = $bestVideoLink"
-        echo "Debug: bestAudioLink = $bestAudioLink"
-        echo "Debug: GITHUB_OUTPUT = $env:GITHUB_OUTPUT"
-        echo "Debug: GITHUB_WORKSPACE = $env:GITHUB_WORKSPACE"
-        # 设置输出变量
+        
         echo "::set-output name=bestVideoLink::$bestVideoLink"
         echo "::set-output name=bestAudioLink::$bestAudioLink"
       
@@ -111,17 +107,10 @@ jobs:
     - name: Conditional download and merge
       if: ${{ github.event.inputs.enable_download == '启用' }}
       run: |
-        # 调试输出，确认变量是否正确传递
-        echo "Debug: download_mode = ${{ github.event.inputs.download_mode }}"
-        echo "Debug: bestVideoLink = ${{ steps.filter.outputs.bestVideoLink }}"
-        echo "Debug: bestAudioLink = ${{ steps.filter.outputs.bestAudioLink }}"
         $videoUrl = if("${{ github.event.inputs.download_mode }}" -eq '自动') { "${{ steps.filter.outputs.bestVideoLink }}" } else { "${{ github.event.inputs.best_video_m3u8 }}" } 
         $audioUrl = if("${{ github.event.inputs.download_mode }}" -eq '自动') { "${{ steps.filter.outputs.bestAudioLink }}" } else { "${{ github.event.inputs.best_audio_m3u8 }}" } 
         $subtitlesUrl = "${{ github.event.inputs.subtitles_m3u8 }}"
         $embedSubtitles = "${{ github.event.inputs.embed_subtitles }}"
-        # 再次调试输出，确认变量值
-        echo "Debug: videoUrl = $videoUrl"
-        echo "Debug: audioUrl = $audioUrl"
         if ($videoUrl -ne "") {
           .\ffmpeg.exe -i $videoUrl -c copy video.mp4
         }
