@@ -99,7 +99,10 @@ jobs:
 
         echo "Best Video Stream URL: $bestVideoLink"
         echo "Best Audio Stream URL: $bestAudioLink"
-
+        echo "Debug: bestVideoLink = $bestVideoLink"
+        echo "Debug: bestAudioLink = $bestAudioLink"
+        echo "Debug: GITHUB_OUTPUT = $env:GITHUB_OUTPUT"
+        echo "Debug: GITHUB_WORKSPACE = $env:GITHUB_WORKSPACE"
         # 设置输出变量
         echo "bestVideoLink=$bestVideoLink" >> $GITHUB_OUTPUT
         echo "bestAudioLink=$bestAudioLink" >> $GITHUB_OUTPUT
