@@ -137,10 +137,10 @@ jobs:
     - name: Upload final output
       if: ${{ github.event.inputs.enable_download == '启用' }}
       run: | 
-        $videoUrl = if(${{ github.event.inputs.download_mode == '自动' }}) { "${{ steps.filter.results.bestVideoLink }}" } else { "${{ github.event.inputs.best_video_m3u8 }}" } 
-        $audioUrl = if(${{ github.event.inputs.download_mode == '自动' }}) { "${{ steps.filter.results.bestAudioLink }}" } else { "${{ github.event.inputs.best_audio_m3u8 }}" } 
-        $subtitlesUrl = "${{ github.event.inputs.subtitles_m3u8 }}" 
-        $embedSubtitles = "${{ github.event.inputs.embed_subtitles }}" 
+        $videoUrl = if("${{ github.event.inputs.download_mode }}" -eq '自动') { "${{ steps.filter.outputs.bestVideoLink }}" } else { "${{ github.event.inputs.best_video_m3u8 }}" } 
+        $audioUrl = if("${{ github.event.inputs.download_mode }}" -eq '自动') { "${{ steps.filter.outputs.bestAudioLink }}" } else { "${{ github.event.inputs.best_audio_m3u8 }}" } 
+        $subtitlesUrl = "${{ github.event.inputs.subtitles_m3u8 }}"
+        $embedSubtitles = "${{ github.event.inputs.embed_subtitles }}"
         if ($videoUrl -ne "" -and $audioUrl -ne "") { 
           if ($embedSubtitles -eq '是' -and $subtitlesUrl -ne "") { 
             echo "Uploading final_output.mkv" 
