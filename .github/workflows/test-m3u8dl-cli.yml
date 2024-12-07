@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       trailer_url:
-        description: '解析视频链接的流信息'
+        description: '解析视频链接流信息'
         required: true
       best_video_m3u8:
         description: '请输入最佳质量视频流的m3u8链接'
@@ -29,20 +29,20 @@ on:
         options:
           - '否'
           - '是'
-      upload_results:
-        description: '是否上传解析信息'
-        required: false
-        type: choice
-        options:
-          - '否'
-          - '是'
-      download_mode:
-        description: '下载步骤选择最佳质量链接'
-        required: false
-        type: choice
-        options:
-          - '自动'
+      download_mode: 
+        description: '下载步骤选择最佳质量链接' 
+        required: false 
+        type: choice 
+        options: 
+          - '自动' 
           - '手动'
+      upload_results: 
+        description: '是否上传解析信息' 
+        required: false 
+        type: choice 
+        options: 
+          - '否' 
+          - '是'
 
 jobs:
   test-m3u8dl-cli:
@@ -97,22 +97,18 @@ jobs:
         $audioLinks = $rawFileContent | Select-String -Pattern "https.*_audio_en_.*gr\d+.*m3u8" | ForEach-Object { $_.Matches.Value }
         $bestAudioLink = $audioLinks | Sort-Object { $_ -replace ".*gr(\d+).*", '$1' -as [int] } -Descending | Select-Object -First 1
 
-        echo "best_video_link=$bestVideoLink" >> $GITHUB_ENV
-        echo "best_audio_link=$bestAudioLink" >> $GITHUB_ENV
         echo "Best Video Stream URL: $bestVideoLink"
         echo "Best Audio Stream URL: $bestAudioLink"
 
+        # 设置输出变量
+        echo "bestVideoLink=$bestVideoLink" >> $GITHUB_OUTPUT
+        echo "bestAudioLink=$bestAudioLink" >> $GITHUB_OUTPUT
+    
     - name: Conditional download and merge
       if: ${{ github.event.inputs.enable_download == '启用' }}
       run: |
-        $downloadMode = "${{ github.event.inputs.download_mode }}"
-        if ($downloadMode -eq '自动') {
-          $videoUrl = "${{ env.best_video_link }}"
-          $audioUrl = "${{ env.best_audio_link }}"
-        } else {
-          $videoUrl = "${{ github.event.inputs.best_video_m3u8 }}"
-          $audioUrl = "${{ github.event.inputs.best_audio_m3u8 }}"
-        }
+        $videoUrl = if("${{ github.event.inputs.download_mode }}" -eq '自动') { "${{ steps.filter.outputs.bestVideoLink }}" } else { "${{ github.event.inputs.best_video_m3u8 }}" } 
+        $audioUrl = if("${{ github.event.inputs.download_mode }}" -eq '自动') { "${{ steps.filter.outputs.bestAudioLink }}" } else { "${{ github.event.inputs.best_audio_m3u8 }}" } 
         $subtitlesUrl = "${{ github.event.inputs.subtitles_m3u8 }}"
         $embedSubtitles = "${{ github.event.inputs.embed_subtitles }}"
         if ($videoUrl -ne "") {
