@@ -105,7 +105,7 @@ jobs:
         }
 
         # 匹配完整的子清单 URL，仅从匹配行中匹配
-        $subPlaylistUrl = ($matchedLines | Select-String -Pattern "https.*video_.*gr(\d+).*\.m3u8" | ForEach-Object { $_.Matches.Value }) | 
+        $subPlaylistUrl = ($ffmpegInfo | Select-String -Pattern "https.*video_.*gr(\d+).*\.m3u8" | ForEach-Object { $_.Matches.Value }) | 
                           Where-Object { $_ -match "gr$grValue" } | Select-Object -First 1
         if (-not $subPlaylistUrl) {
           throw "无法匹配到包含 gr$grValue 的子清单 URL！"
