@@ -161,7 +161,7 @@ jobs:
         Write-Host "选择的最佳音频 URL: $bestAudioUrl"
 
         # 提取字幕逻辑
-        $subtitleRegex = "https.*_你好-Hans_subtitles.*\.m3u8"
+        $subtitleRegex = "https.*_cmn-Hans_subtitles.*\.m3u8"
         $subtitleUrl = ($ffmpegInfo | Select-String -Pattern $subtitleRegex | ForEach-Object { $_.Matches.Value }) | Select-Object -First 1
 
         if (-not $subtitleUrl) {
