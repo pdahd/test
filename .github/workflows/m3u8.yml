@@ -182,14 +182,20 @@ jobs:
         # 下载并保存音频流
         .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3
 
-        Write-Host "下载完成，输出文件：video_${resolution}.mov、audio.ec3 和 subtitles.srt"
+        # 视频、音频和字幕混流封装
+        if (Test-Path "subtitles.srt") {
+          Write-Host "封装视频、音频和字幕至 MKV"
+          .\ffmpeg.exe -i video_${resolution}.mov -i audio.ec3 -i subtitles.srt -c copy final_output.mkv
+        } else {
+          Write-Host "封装视频和音频至 MKV（无字幕）"
+          .\ffmpeg.exe -i video_${resolution}.mov -i audio.ec3 -c copy final_output.mov
+        }
+
+        Write-Host "混流封装完成，输出文件：final_output.mkv 或 final_output.mov"
     
     - name: Upload FFmpeg outputs
-      if: ${{ github.event.inputs.trailer_url != '' }}
       uses: actions/upload-artifact@v4
       with:
         name: ffmpeg-outputs
         path: |
-          output_highest.mov
-          saved_playlist.m3u8
-          raw.m3u8
+          final_output.*
