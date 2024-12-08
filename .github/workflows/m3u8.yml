@@ -70,13 +70,15 @@ jobs:
         # 提取 FFmpeg 输出信息
         $ffmpegInfo = .\ffmpeg.exe -i $m3u8File 2>&1
 
-        # 逻辑分支：根据分辨率选项进行操作
+        # 初始化变量
+        $keyword = ""
+        $regex = ""
+
+        # 分辨率逻辑分离
         if ($resolution -eq "1080p") {
-          # 1080p 的逻辑
           $keyword = "HD"
           $regex = "https.*video_.*gr(\d+).*\.m3u8"
         } elseif ($resolution -eq "4K") {
-          # 4K 的逻辑
           $keyword = "UHD"
           $regex = "https.*video_.*gr(\d+).*dovi.*\.m3u8"
 
@@ -120,7 +122,7 @@ jobs:
           throw "无法从最佳行中提取 gr 值！"
         }
 
-        # 匹配完整的子清单 URL，仅限于包含关键词的行
+        # 匹配完整的子清单 URL，仅从匹配行中匹配
         $subPlaylistUrl = ($matchedLines | Select-String -Pattern "$regex" | ForEach-Object { $_.Matches.Value }) | 
                           Where-Object { $_ -match "gr$grValue" } | Select-Object -First 1
         if (-not $subPlaylistUrl) {
