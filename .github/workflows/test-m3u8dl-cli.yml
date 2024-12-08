@@ -1,4 +1,4 @@
-name: Test N_m3u8DL-CLI
+name: Test
 
 on:
   workflow_dispatch:
