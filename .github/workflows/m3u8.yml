@@ -120,8 +120,8 @@ jobs:
           throw "无法从最佳行中提取 gr 值！"
         }
 
-        # 匹配完整的子清单 URL
-        $subPlaylistUrl = ($ffmpegInfo | Select-String -Pattern "$regex" | ForEach-Object { $_.Matches.Value }) | 
+        # 匹配完整的子清单 URL，仅限于包含关键词的行
+        $subPlaylistUrl = ($matchedLines | Select-String -Pattern "$regex" | ForEach-Object { $_.Matches.Value }) | 
                           Where-Object { $_ -match "gr$grValue" } | Select-Object -First 1
         if (-not $subPlaylistUrl) {
           throw "无法匹配到包含 gr$grValue 的子清单 URL！"
@@ -132,7 +132,7 @@ jobs:
         # 下载并保存视频流
         .\ffmpeg.exe -i $subPlaylistUrl -c copy output_${resolution}.mov
         Write-Host "下载完成，输出文件：output_${resolution}.mov"
-
+    
     - name: Upload FFmpeg outputs
       if: ${{ github.event.inputs.trailer_url != '' }}
       uses: actions/upload-artifact@v4
