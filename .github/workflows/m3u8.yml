@@ -70,29 +70,33 @@ jobs:
         # 提取 FFmpeg 输出信息
         $ffmpegInfo = .\ffmpeg.exe -i $m3u8File 2>&1
 
-        # 逻辑分支：根据分辨率选项进行操作
+        # 初始化变量
+        $regexLine = ""
+        $regexUrl = ""
+
+        # 分辨率逻辑分支
         if ($resolution -eq "1080p") {
           # 1080p 的逻辑
-          $keyword = "^\[hls.*Skip \('\#-- video_gr\d+\s+HD.*?avg:\s+\d+(\.\d+)?\s+Mbps max:.*?Mbps --'\)$"
-          $regex = "https.*video_.*gr(\d+).*\.m3u8"
+          $regexLine = "^\[hls.*Skip \('\#-- video_gr\d+\s+HD.*?avg:\s+\d+(\.\d+)?\s+Mbps max:.*?Mbps --'\)$"
+          $regexUrl = "https.*video_.*gr(\d+).*\.m3u8"
         } elseif ($resolution -eq "4K") {
           # 4K 的逻辑
-          $keyword = "^\[hls.*Skip \('\#-- video_gr\d+\s+UHD.*?avg:\s+\d+(\.\d+)?\s+Mbps max:.*?Mbps --'\)$"
-          $regex = "https.*video_.*gr(\d+).*dovi.*\.m3u8"
+          $regexLine = "^\[hls.*Skip \('\#-- video_gr\d+\s+UHD.*?avg:\s+\d+(\.\d+)?\s+Mbps max:.*?Mbps --'\)$"
+          $regexUrl = "https.*video_.*gr(\d+).*dovi.*\.m3u8"
 
           # 回退到不含 dovi 的模式
           if (-not ($ffmpegInfo | Select-String -Pattern "dovi")) {
             Write-Host "未找到 dovi 关键字，回退至标准 UHD 模式"
-            $regex = "https.*video_.*gr(\d+).*\.m3u8"
+            $regexUrl = "https.*video_.*gr(\d+).*\.m3u8"
           }
         } else {
           throw "无效的分辨率选项：$resolution"
         }
 
-        # 提取与关键词匹配的所有行
-        $matchedLines = $ffmpegInfo | Select-String -Pattern $keyword
+        # 提取与正则匹配的所有行
+        $matchedLines = $ffmpegInfo | Select-String -Pattern $regexLine
         if (-not $matchedLines) {
-          throw "未找到包含关键字 $keyword 的视频流信息！"
+          throw "未找到符合条件的视频流信息！"
         }
 
         # 提取每行的第一个比特率值并比较
@@ -120,8 +124,8 @@ jobs:
           throw "无法从最佳行中提取 gr 值！"
         }
 
-        # 匹配完整的子清单 URL
-        $subPlaylistUrl = ($ffmpegInfo | Select-String -Pattern "$regex" | ForEach-Object { $_.Matches.Value }) | 
+        # 匹配完整的视频子清单 URL
+        $subPlaylistUrl = ($ffmpegInfo | Select-String -Pattern "$regexUrl" | ForEach-Object { $_.Matches.Value }) | 
                           Where-Object { $_ -match "gr$grValue" } | Select-Object -First 1
         if (-not $subPlaylistUrl) {
           throw "无法匹配到包含 gr$grValue 的子清单 URL！"
@@ -129,9 +133,40 @@ jobs:
 
         Write-Host "选择的子清单 URL: $subPlaylistUrl"
 
+        # 提取最高质量音频逻辑
+        $audioRegex = "https.*_audio_en_.*gr(\d+).*\.m3u8"
+        $audioUrls = $ffmpegInfo | Select-String -Pattern $audioRegex | ForEach-Object { $_.Matches.Value }
+
+        if (-not $audioUrls) {
+          throw "未找到音频流链接！"
+        }
+
+        # 比较音频 gr 值，选取最大值
+        $maxAudioGr = 0
+        $bestAudioUrl = ""
+        foreach ($url in $audioUrls) {
+          if ($url -match "gr(\d+)") {
+            $audioGr = [int]$matches[1]
+            if ($audioGr -gt $maxAudioGr) {
+              $maxAudioGr = $audioGr
+              $bestAudioUrl = $url
+            }
+          }
+        }
+
+        if (-not $bestAudioUrl) {
+          throw "无法确定最佳音频流链接！"
+        }
+
+        Write-Host "选择的最佳音频 URL: $bestAudioUrl"
+
         # 下载并保存视频流
-        .\ffmpeg.exe -i $subPlaylistUrl -c copy output_${resolution}.mov
-        Write-Host "下载完成，输出文件：output_${resolution}.mov"
+        .\ffmpeg.exe -i $subPlaylistUrl -c copy video_${resolution}.mov
+
+        # 下载并保存音频流
+        .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3
+
+        Write-Host "下载完成，输出文件：video_${resolution}.mov 和 audio.ec3"
     
     - name: Upload FFmpeg outputs
       if: ${{ github.event.inputs.trailer_url != '' }}
