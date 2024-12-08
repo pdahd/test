@@ -62,34 +62,17 @@ jobs:
 
     - name: Process raw.m3u8 with FFmpeg
       run: |
-        # 确定输入分辨率选项
-        $resolution = "${{ github.event.inputs.resolution }}"
+        # 确定输入分辨率选项（仅支持 1080p）
+        $resolution = "1080p"  # 固定为 1080p
         $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
         $m3u8File = "workdir\$timestamp\raw.m3u8"
 
         # 提取 FFmpeg 输出信息
         $ffmpegInfo = .\ffmpeg.exe -i $m3u8File 2>&1
 
-        # 初始化变量
-        $keyword = ""
-        $regex = ""
-
-        # 分辨率逻辑分离
-        if ($resolution -eq "1080p") {
-          $keyword = "HD"
-          $regex = "https.*video_.*gr(\d+).*\.m3u8"
-        } elseif ($resolution -eq "4K") {
-          $keyword = "UHD"
-          $regex = "https.*video_.*gr(\d+).*dovi.*\.m3u8"
-
-          # 回退到不含 dovi 的模式
-          if (-not ($ffmpegInfo | Select-String -Pattern "dovi")) {
-            Write-Host "未找到 dovi 关键字，回退至标准 UHD 模式"
-            $regex = "https.*video_.*gr(\d+).*\.m3u8"
-          }
-        } else {
-          throw "无效的分辨率选项：$resolution"
-        }
+        # 初始化关键词和正则表达式（针对 1080p）
+        $keyword = "HD"
+        $regex = "https.*video_.*gr(\d+).*\.m3u8"
 
         # 提取与关键词匹配的所有行
         $matchedLines = $ffmpegInfo | Select-String -Pattern $keyword
