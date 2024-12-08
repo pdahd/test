@@ -70,14 +70,13 @@ jobs:
         # 提取 FFmpeg 输出信息
         $ffmpegInfo = .\ffmpeg.exe -i $m3u8File 2>&1
 
-        # 初始化关键词和正则表达式（针对 1080p）
-        $keyword = "HD"
-        $regex = "https.*video_.*gr(\d+).*\.m3u8"
+        # 正则表达式：匹配完整的“HD”行
+        $regex = "^\[hls.*Skip \('\#-- video_gr\d+\s+HD.*?avg:\s+\d+(\.\d+)?\s+Mbps max:.*?Mbps --'\)$"
 
-        # 提取与关键词匹配的所有行
-        $matchedLines = $ffmpegInfo | Select-String -Pattern $keyword
+        # 提取与正则匹配的所有行
+        $matchedLines = $ffmpegInfo | Select-String -Pattern $regex
         if (-not $matchedLines) {
-          throw "未找到包含关键字 $keyword 的视频流信息！"
+          throw "未找到符合条件的 HD 视频流信息！"
         }
 
         # 提取每行的第一个比特率值并比较
@@ -106,7 +105,7 @@ jobs:
         }
 
         # 匹配完整的子清单 URL，仅从匹配行中匹配
-        $subPlaylistUrl = ($matchedLines | Select-String -Pattern "$regex" | ForEach-Object { $_.Matches.Value }) | 
+        $subPlaylistUrl = ($matchedLines | Select-String -Pattern "https.*video_.*gr(\d+).*\.m3u8" | ForEach-Object { $_.Matches.Value }) | 
                           Where-Object { $_ -match "gr$grValue" } | Select-Object -First 1
         if (-not $subPlaylistUrl) {
           throw "无法匹配到包含 gr$grValue 的子清单 URL！"
