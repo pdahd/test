@@ -1,0 +1,95 @@
+name: Test N_m3u8DL-CLI
+
+on:
+  workflow_dispatch:
+    inputs:
+      trailer_url:
+        description: '解析视频链接流信息'
+        required: true
+      ffmpeg_option:
+        description: 'FFmpeg操作选项: 自动选择最高分辨率、手动选择分辨率、保存特定清单等'
+        required: true
+        default: '自动选择最高分辨率'
+
+jobs:
+  test-m3u8dl-cli:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download N_m3u8DL-CLI
+      run: |
+        Invoke-WebRequest -Uri https://github.com/nilaoda/N_m3u8DL-CLI/releases/download/3.0.2/N_m3u8DL-CLI_v3.0.2.exe -OutFile N_m3u8DL-CLI.exe
+
+    - name: Download ffmpeg
+      run: |
+        Invoke-WebRequest -Uri https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip -OutFile ffmpeg-latest.zip
+        Expand-Archive -Path ffmpeg-latest.zip -DestinationPath ffmpeg
+        Move-Item ffmpeg/*/bin/ffmpeg.exe .
+
+    - name: Process input URL
+      run: |
+        $trailerUrl = "${{ github.event.inputs.trailer_url }}"
+        # 获取输入链接的源代码
+        $sourceCode = curl -s "$trailerUrl"
+        
+        # 提取包含 m3u8 的完整 HTML 硬编码链接
+        $m3u8Links = ($sourceCode | Select-String -Pattern 'https.*?\.m3u8.*?"') `
+                      -replace '&amp;', '&' `
+                      -replace '.*content="(https.*?\.m3u8.*?)".*', '$1'
+        
+        # 选择第一个匹配链接
+        if ($m3u8Links.Length -gt 0) {
+          $processedUrl = $m3u8Links[0]
+        } else {
+          throw "未找到包含 m3u8 的 HTML 硬编码链接！"
+        }
+        
+        echo "Found m3u8 URL: $processedUrl"
+        echo $processedUrl > input.txt
+
+    - name: Test N_m3u8DL-CLI
+      if: ${{ github.event.inputs.trailer_url != '' }}
+      run: |
+        mkdir workdir
+        .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
+        dir workdir
+
+    - name: Display raw.m3u8 content
+      if: ${{ github.event.inputs.trailer_url != '' }}
+      run: |
+        $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name 
+        Get-Content "workdir\$timestamp\raw.m3u8" > raw.m3u8
+        echo "raw.m3u8 content saved."
+
+    - name: Process raw.m3u8 with FFmpeg
+      if: ${{ github.event.inputs.ffmpeg_option != '' }}
+      run: |
+        $option = "${{ github.event.inputs.ffmpeg_option }}"
+        $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
+        $m3u8File = "workdir\$timestamp\raw.m3u8"
+        
+        if ($option -eq "自动选择最高分辨率") {
+          .\ffmpeg.exe -i $m3u8File -c copy output_highest.mov
+          echo "自动选择最高分辨率完成，输出: output_highest.mov"
+        } elseif ($option -eq "保存特定清单") {
+          .\ffmpeg.exe -i $m3u8File -c copy -f hls saved_playlist.m3u8
+          echo "保存特定清单完成，输出: saved_playlist.m3u8"
+        } elseif ($option -eq "手动选择分辨率") {
+          .\ffmpeg.exe -i $m3u8File
+          throw "请手动分析输出并选择目标分辨率子清单进行处理。"
+        } else {
+          throw "未知的 FFmpeg 选项: $option"
+        }
+
+    - name: Upload FFmpeg outputs
+      if: ${{ github.event.inputs.ffmpeg_option != '' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ffmpeg-outputs
+        path: |
+          output_highest.mov
+          saved_playlist.m3u8
+          raw.m3u8
