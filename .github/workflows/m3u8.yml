@@ -62,21 +62,37 @@ jobs:
 
     - name: Process raw.m3u8 with FFmpeg
       run: |
-        # 确定输入分辨率选项（仅支持 1080p）
-        $resolution = "1080p"  # 固定为 1080p
+        # 确定输入分辨率选项
+        $resolution = "${{ github.event.inputs.resolution }}"
         $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
         $m3u8File = "workdir\$timestamp\raw.m3u8"
 
         # 提取 FFmpeg 输出信息
         $ffmpegInfo = .\ffmpeg.exe -i $m3u8File 2>&1
 
-        # 正则表达式：匹配完整的“HD”行
-        $regex = "^\[hls.*Skip \('\#-- video_gr\d+\s+HD.*?avg:\s+\d+(\.\d+)?\s+Mbps max:.*?Mbps --'\)$"
+        # 逻辑分支：根据分辨率选项进行操作
+        if ($resolution -eq "1080p") {
+          # 1080p 的逻辑
+          $keyword = "^\[hls.*Skip \('\#-- video_gr\d+\s+HD.*?avg:\s+\d+(\.\d+)?\s+Mbps max:.*?Mbps --'\)$"
+          $regex = "https.*video_.*gr(\d+).*\.m3u8"
+        } elseif ($resolution -eq "4K") {
+          # 4K 的逻辑
+          $keyword = "^\[hls.*Skip \('\#-- video_gr\d+\s+UHD.*?avg:\s+\d+(\.\d+)?\s+Mbps max:.*?Mbps --'\)$"
+          $regex = "https.*video_.*gr(\d+).*dovi.*\.m3u8"
 
-        # 提取与正则匹配的所有行
-        $matchedLines = $ffmpegInfo | Select-String -Pattern $regex
+          # 回退到不含 dovi 的模式
+          if (-not ($ffmpegInfo | Select-String -Pattern "dovi")) {
+            Write-Host "未找到 dovi 关键字，回退至标准 UHD 模式"
+            $regex = "https.*video_.*gr(\d+).*\.m3u8"
+          }
+        } else {
+          throw "无效的分辨率选项：$resolution"
+        }
+
+        # 提取与关键词匹配的所有行
+        $matchedLines = $ffmpegInfo | Select-String -Pattern $keyword
         if (-not $matchedLines) {
-          throw "未找到符合条件的 HD 视频流信息！"
+          throw "未找到包含关键字 $keyword 的视频流信息！"
         }
 
         # 提取每行的第一个比特率值并比较
@@ -104,8 +120,8 @@ jobs:
           throw "无法从最佳行中提取 gr 值！"
         }
 
-        # 匹配完整的子清单 URL，仅从匹配行中匹配
-        $subPlaylistUrl = ($ffmpegInfo | Select-String -Pattern "https.*video_.*gr(\d+).*\.m3u8" | ForEach-Object { $_.Matches.Value }) | 
+        # 匹配完整的子清单 URL
+        $subPlaylistUrl = ($ffmpegInfo | Select-String -Pattern "$regex" | ForEach-Object { $_.Matches.Value }) | 
                           Where-Object { $_ -match "gr$grValue" } | Select-Object -First 1
         if (-not $subPlaylistUrl) {
           throw "无法匹配到包含 gr$grValue 的子清单 URL！"
