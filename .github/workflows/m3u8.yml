@@ -160,13 +160,29 @@ jobs:
 
         Write-Host "选择的最佳音频 URL: $bestAudioUrl"
 
+        # 提取字幕逻辑
+        $subtitleRegex = "https.*_cmn-Hans_subtitles.*\.m3u8"
+        $subtitleUrl = ($ffmpegInfo | Select-String -Pattern $subtitleRegex | ForEach-Object { $_.Matches.Value }) | Select-Object -First 1
+
+        if (-not $subtitleUrl) {
+          Write-Host "未找到字幕流链接，跳过字幕下载"
+        } else {
+          Write-Host "选择的字幕 URL: $subtitleUrl"
+
+          # 下载字幕流并转换为 SRT 格式
+          .\ffmpeg.exe -i $subtitleUrl -c copy subtitles.vtt
+          .\ffmpeg.exe -i subtitles.vtt subtitles.srt
+          Remove-Item subtitles.vtt
+          Write-Host "字幕下载并转换完成，输出文件：subtitles.srt"
+        }
+
         # 下载并保存视频流
         .\ffmpeg.exe -i $subPlaylistUrl -c copy video_${resolution}.mov
 
         # 下载并保存音频流
         .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3
 
-        Write-Host "下载完成，输出文件：video_${resolution}.mov 和 audio.ec3"
+        Write-Host "下载完成，输出文件：video_${resolution}.mov、audio.ec3 和 subtitles.srt"
     
     - name: Upload FFmpeg outputs
       if: ${{ github.event.inputs.trailer_url != '' }}
