@@ -1,14 +1,14 @@
-name: Test N_m3u8DL-CLI
+name: 杜比视界 (DoVi) + 杜比全景声 (Dolby Atmos) UHD Apple 电影预告片无损下载
 
 on:
   workflow_dispatch:
     inputs:
       trailer_url:
-        description: '请输入Apple预告片链接'
+        description: '输入 Apple 电影预告片链接'
         required: true
       resolution:
-        description: '选择目标分辨率'
-        required: true
+        description: '选择预告片分辨率'
+        required: false
         type: choice
         options:
           - '1080p'
@@ -53,7 +53,7 @@ jobs:
         echo "Found m3u8 URL: $processedUrl"
         echo $processedUrl > input.txt
 
-    - name: Test N_m3u8DL-CLI
+    - name: Parse M3U8 with N_m3u8DL-CLI
       if: ${{ github.event.inputs.trailer_url != '' }}
       run: |
         mkdir workdir
