@@ -216,7 +216,7 @@ jobs:
           Write-Host "混流封装完成，输出文件：final_output.mov"
         }
     
-    - name: Rename and Upload FFmpeg outputs
+    - name: Rename and Set Output Filename
       run: |
         # 提取用户输入的视频链接
         $inputUrl = "${{ github.event.inputs.trailer_url }}"
@@ -246,10 +246,12 @@ jobs:
         # 重命名文件
         Rename-Item -Path $originalFile.FullName -NewName $newFileName
 
-        # 上传文件
-        echo "::set-output name=renamedFile::$newFileName"
-        uses: actions/upload-artifact@v4
-        with:
-          name: renamed-ffmpeg-output
-          path: |
-            ${{ steps.rename.outputs.renamedFile }}
+        # 将新文件名写入环境文件
+        echo "RENAMED_FILE=$newFileName" >> $env:GITHUB_ENV
+
+    - name: Upload FFmpeg outputs
+      uses: actions/upload-artifact@v4
+      with:
+        name: renamed-ffmpeg-output
+        path: |
+          ${{ env.RENAMED_FILE }}
