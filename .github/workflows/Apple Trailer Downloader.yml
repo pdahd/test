@@ -15,7 +15,7 @@ on:
           - '4K'
 
 jobs:
-  test-m3u8dl-cli:
+  download-apple-trailers:
     runs-on: windows-latest
 
     steps:
@@ -133,7 +133,7 @@ jobs:
 
         Write-Host "选择的子清单 URL: $subPlaylistUrl"
 
-        # 音频逻辑
+        # 音频提取逻辑
         if ($resolution -eq "1080p") {
           # 1080p 音频直接指定 gr160
           $audioRegex = "https.*_audio_en_gr160.*\.m3u8"
