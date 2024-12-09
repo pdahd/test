@@ -220,7 +220,7 @@ jobs:
           Write-Host "混流封装完成，输出文件：final_output.mov"
         }
     
-    - name: Rename and Upload FFmpeg outputs with Technical Tags
+    - name: Rename FFmpeg outputs
       run: |
         # 提取用户输入的视频链接
         $inputUrl = "${{ github.event.inputs.trailer_url }}"
@@ -239,31 +239,34 @@ jobs:
           throw "未能获取用户选择的分辨率！"
         }
 
-        # 读取 FFmpeg 视频和音频日志内容
-        $videoLogFile = "${{ env.FFMPEG_LOG }}"
-        $audioLogFile = "${{ env.FFMPEG_AUDIO_LOG }}"
-
-        if (-not (Test-Path $videoLogFile)) {
-          throw "无法找到视频日志文件！"
-        }
-        if (-not (Test-Path $audioLogFile)) {
-          throw "无法找到音频日志文件！"
-        }
-
-        $videoLog = Get-Content $videoLogFile
-        $audioLog = Get-Content $audioLogFile
-
         # 初始化技术性标签
         $technicalTags = @()
 
-        # 视频技术性标签
-        if ($videoLog -match "DOVI configuration record") {
-          $technicalTags += "DolbyVision"
-        }
+        # 如果分辨率为 4K，则读取日志并添加技术性标签
+        if ($resolution -eq "4K") {
+          # 读取 FFmpeg 视频和音频日志内容
+          $videoLogFile = "${{ env.FFMPEG_LOG }}"
+          $audioLogFile = "${{ env.FFMPEG_AUDIO_LOG }}"
 
-        # 音频技术性标签
-        if ($audioLog -match "Dolby Digital Plus \+ Dolby Atmos") {
-          $technicalTags += "DolbyAtmos"
+          if (-not (Test-Path $videoLogFile)) {
+            throw "无法找到视频日志文件！"
+          }
+          if (-not (Test-Path $audioLogFile)) {
+            throw "无法找到音频日志文件！"
+          }
+
+          $videoLog = Get-Content $videoLogFile
+          $audioLog = Get-Content $audioLogFile
+
+          # 视频技术性标签
+          if ($videoLog -match "DOVI configuration record") {
+            $technicalTags += "DolbyVision"
+          }
+
+          # 音频技术性标签
+          if ($audioLog -match "Dolby Digital Plus \+ Dolby Atmos") {
+            $technicalTags += "DolbyAtmos"
+          }
         }
 
         # 构造技术性标签字符串
@@ -292,16 +295,10 @@ jobs:
         # 重命名文件
         Rename-Item -Path $originalFile.FullName -NewName $newFileName
 
-        # 上传文件
+        # 将新文件名写入环境变量
         echo "RENAMED_FILE=$newFileName" >> $env:GITHUB_ENV
-        uses: actions/upload-artifact@v4
-        with:
-          name: renamed-ffmpeg-output
-          path: |
-            ${{ env.RENAMED_FILE }}
 
     - name: Upload FFmpeg outputs
-      if: false
       uses: actions/upload-artifact@v4
       with:
         name: renamed-ffmpeg-output
