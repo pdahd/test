@@ -133,32 +133,46 @@ jobs:
 
         Write-Host "选择的子清单 URL: $subPlaylistUrl"
 
-        # 提取最高质量音频逻辑
-        $audioRegex = "https.*_audio_en_.*gr(\d+).*\.m3u8"
-        $audioUrls = $ffmpegInfo | Select-String -Pattern $audioRegex | ForEach-Object { $_.Matches.Value }
+        # 音频逻辑
+        if ($resolution -eq "1080p") {
+          # 1080p 音频直接指定 gr160
+          $audioRegex = "https.*_audio_en_gr160.*\.m3u8"
+          $bestAudioUrl = ($ffmpegInfo | Select-String -Pattern $audioRegex | ForEach-Object { $_.Matches.Value }) | Select-Object -First 1
 
-        if (-not $audioUrls) {
-          throw "未找到音频流链接！"
-        }
+          if (-not $bestAudioUrl) {
+            throw "未找到音频流链接（gr160）！"
+          }
 
-        # 比较音频 gr 值，选取最大值
-        $maxAudioGr = 0
-        $bestAudioUrl = ""
-        foreach ($url in $audioUrls) {
-          if ($url -match "gr(\d+)") {
-            $audioGr = [int]$matches[1]
-            if ($audioGr -gt $maxAudioGr) {
-              $maxAudioGr = $audioGr
-              $bestAudioUrl = $url
+          Write-Host "选择的 1080p 音频 URL: $bestAudioUrl"
+
+        } elseif ($resolution -eq "4K") {
+          # 4K 音频基于最大 gr 值
+          $audioRegex = "https.*_audio_en_.*gr(\d+).*\.m3u8"
+          $audioUrls = $ffmpegInfo | Select-String -Pattern $audioRegex | ForEach-Object { $_.Matches.Value }
+
+          if (-not $audioUrls) {
+            throw "未找到音频流链接！"
+          }
+
+          # 比较音频 gr 值，选取最大值
+          $maxAudioGr = 0
+          $bestAudioUrl = ""
+          foreach ($url in $audioUrls) {
+            if ($url -match "gr(\d+)") {
+              $audioGr = [int]$matches[1]
+              if ($audioGr -gt $maxAudioGr) {
+                $maxAudioGr = $audioGr
+                $bestAudioUrl = $url
+              }
             }
           }
-        }
 
-        if (-not $bestAudioUrl) {
-          throw "无法确定最佳音频流链接！"
-        }
+          if (-not $bestAudioUrl) {
+            throw "无法确定最佳音频流链接！"
+          }
 
-        Write-Host "选择的最佳音频 URL: $bestAudioUrl"
+          Write-Host "选择的 4K 音频 URL: $bestAudioUrl"
+        }
 
         # 提取字幕逻辑
         $subtitleRegex = "https.*_cmn-Hans_subtitles.*\.m3u8"
