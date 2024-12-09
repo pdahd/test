@@ -216,9 +216,40 @@ jobs:
           Write-Host "混流封装完成，输出文件：final_output.mov"
         }
     
-    - name: Upload FFmpeg outputs
-      uses: actions/upload-artifact@v4
-      with:
-        name: ffmpeg-outputs
-        path: |
-          final_output.*
+    - name: Rename and Upload FFmpeg outputs
+      run: |
+        # 提取用户输入的视频链接
+        $inputUrl = "${{ github.event.inputs.trailer_url }}"
+
+        # 使用正则表达式从链接中提取电影片名
+        if ($inputUrl -match "/movie/([^/]+)/") {
+          $movieTitle = $matches[1]
+          Write-Host "提取的电影片名为: $movieTitle"
+        } else {
+          throw "无法从输入链接中提取电影片名！"
+        }
+
+        # 确定用户选择的分辨率
+        $resolution = "${{ github.event.inputs.resolution }}"
+        if (-not $resolution) {
+          throw "未能获取用户选择的分辨率！"
+        }
+
+        # 确定输出文件的扩展名
+        $originalFile = Get-Item final_output.*
+        $extension = $originalFile.Extension
+
+        # 构造新文件名，包含片名、分辨率和苹果预告片标签
+        $newFileName = "${movieTitle}_${resolution}_AppleTrailer${extension}"
+        Write-Host "重命名文件为: $newFileName"
+
+        # 重命名文件
+        Rename-Item -Path $originalFile.FullName -NewName $newFileName
+
+        # 上传文件
+        echo "::set-output name=renamedFile::$newFileName"
+        uses: actions/upload-artifact@v4
+        with:
+          name: renamed-ffmpeg-output
+          path: |
+            ${{ steps.rename.outputs.renamedFile }}
