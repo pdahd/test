@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       trailer_url:
-        description: '请输入视频链接（例如苹果预告片链接）'
+        description: '请输入Apple预告片链接'
         required: true
       resolution:
         description: '选择目标分辨率'
