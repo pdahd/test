@@ -295,12 +295,16 @@ jobs:
         # 重命名文件
         Rename-Item -Path $originalFile.FullName -NewName $newFileName
 
+        # 提取文件名基础部分并保存到环境变量
+        $baseName = [System.IO.Path]::GetFileNameWithoutExtension($newFileName)
+        echo "RENAMED_FILE_BASE=$baseName" >> $env:GITHUB_ENV
+
         # 将新文件名写入环境变量
         echo "RENAMED_FILE=$newFileName" >> $env:GITHUB_ENV
 
     - name: Upload FFmpeg outputs
       uses: actions/upload-artifact@v4
       with:
-        name: renamed-ffmpeg-output
+        name: ${{ env.RENAMED_FILE_BASE }}
         path: |
           ${{ env.RENAMED_FILE }}
