@@ -137,13 +137,16 @@ jobs:
         if ($resolution -eq "1080p") {
           # 1080p 音频直接指定 gr160
           $audioRegex = "https.*_audio_en_gr160.*\.m3u8"
-          $bestAudioUrl = ($ffmpegInfo | Select-String -Pattern $audioRegex | ForEach-Object { $_.Matches.Value }) | Select-Object -First 1
+          $audioUrl = ($ffmpegInfo | Select-String -Pattern $audioRegex | ForEach-Object { $_.Matches.Value }) | Select-Object -First 1
 
-          if (-not $bestAudioUrl) {
+          if (-not $audioUrl) {
             throw "未找到音频流链接（gr160）！"
           }
 
-          Write-Host "选择的 1080p 音频 URL: $bestAudioUrl"
+          Write-Host "选择的 1080p 音频 URL: $audioUrl"
+
+          # 下载并保存 1080p 音频流
+          .\ffmpeg.exe -i $audioUrl -c copy audio.m4a
 
         } elseif ($resolution -eq "4K") {
           # 4K 音频基于最大 gr 值
@@ -156,22 +159,25 @@ jobs:
 
           # 比较音频 gr 值，选取最大值
           $maxAudioGr = 0
-          $bestAudioUrl = ""
+          $audioUrl = ""
           foreach ($url in $audioUrls) {
             if ($url -match "gr(\d+)") {
               $audioGr = [int]$matches[1]
               if ($audioGr -gt $maxAudioGr) {
                 $maxAudioGr = $audioGr
-                $bestAudioUrl = $url
+                $audioUrl = $url
               }
             }
           }
 
-          if (-not $bestAudioUrl) {
+          if (-not $audioUrl) {
             throw "无法确定最佳音频流链接！"
           }
 
-          Write-Host "选择的 4K 音频 URL: $bestAudioUrl"
+          Write-Host "选择的 4K 音频 URL: $audioUrl"
+
+          # 下载并保存 4K 音频流
+          .\ffmpeg.exe -i $audioUrl -c copy audio.ec3
         }
 
         # 提取字幕逻辑
@@ -193,19 +199,22 @@ jobs:
         # 下载并保存视频流
         .\ffmpeg.exe -i $subPlaylistUrl -c copy video_${resolution}.mov
 
-        # 下载并保存音频流
-        .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3
-
         # 视频、音频和字幕混流封装
-        if (Test-Path "subtitles.srt") {
-          Write-Host "封装视频、音频和字幕至 MKV"
-          .\ffmpeg.exe -i video_${resolution}.mov -i audio.ec3 -i subtitles.srt -c copy final_output.mkv
-        } else {
-          Write-Host "封装视频和音频至 MKV（无字幕）"
-          .\ffmpeg.exe -i video_${resolution}.mov -i audio.ec3 -c copy final_output.mov
+        if ($resolution -eq "1080p") {
+          $audioFile = "audio.m4a"
+        } elseif ($resolution -eq "4K") {
+          $audioFile = "audio.ec3"
         }
 
-        Write-Host "混流封装完成，输出文件：final_output.mkv 或 final_output.mov"
+        if (Test-Path "subtitles.srt") {
+          Write-Host "封装视频、音频和字幕至 MKV"
+          .\ffmpeg.exe -i video_${resolution}.mov -i $audioFile -i subtitles.srt -c copy final_output.mkv
+          Write-Host "混流封装完成，输出文件：final_output.mkv"
+        } else {
+          Write-Host "封装视频和音频至 MOV（无字幕）"
+          .\ffmpeg.exe -i video_${resolution}.mov -i $audioFile -c copy final_output.mov
+          Write-Host "混流封装完成，输出文件：final_output.mov"
+        }
     
     - name: Upload FFmpeg outputs
       uses: actions/upload-artifact@v4
