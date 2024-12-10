@@ -59,6 +59,9 @@ jobs:
         mkdir workdir
         .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
         dir workdir
+        $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
+        $m3u8File = "workdir\$timestamp\raw.m3u8"
+        .\ffmpeg.exe -i $m3u8File
 
     - name: Process raw.m3u8 with FFmpeg
       run: |
