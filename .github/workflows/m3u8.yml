@@ -1,0 +1,310 @@
+name: Test N_m3u8DL-CLI
+
+on:
+  workflow_dispatch:
+    inputs:
+      trailer_url:
+        description: '请输入Apple预告片链接'
+        required: true
+      resolution:
+        description: '选择目标分辨率'
+        required: true
+        type: choice
+        options:
+          - '1080p'
+          - '4K'
+
+jobs:
+  test-m3u8dl-cli:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download N_m3u8DL-CLI
+      run: |
+        Invoke-WebRequest -Uri https://github.com/nilaoda/N_m3u8DL-CLI/releases/download/3.0.2/N_m3u8DL-CLI_v3.0.2.exe -OutFile N_m3u8DL-CLI.exe
+
+    - name: Download ffmpeg
+      run: |
+        Invoke-WebRequest -Uri https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip -OutFile ffmpeg-latest.zip
+        Expand-Archive -Path ffmpeg-latest.zip -DestinationPath ffmpeg
+        Move-Item ffmpeg/*/bin/ffmpeg.exe .
+
+    - name: Process input URL
+      run: |
+        $trailerUrl = "${{ github.event.inputs.trailer_url }}"
+        # 获取输入链接的源代码
+        $sourceCode = curl -s "$trailerUrl"
+        
+        # 提取包含 m3u8 的完整 HTML 硬编码链接
+        $m3u8Links = ($sourceCode | Select-String -Pattern 'https.*?\.m3u8.*?"') `
+                      -replace '&amp;', '&' `
+                      -replace '.*content="(https.*?\.m3u8.*?)".*', '$1'
+        
+        # 选择第一个匹配链接
+        if ($m3u8Links.Length -gt 0) {
+          $processedUrl = $m3u8Links[0]
+        } else {
+          throw "未找到包含 m3u8 的 HTML 硬编码链接！"
+        }
+        
+        echo "Found m3u8 URL: $processedUrl"
+        echo $processedUrl > input.txt
+
+    - name: Test N_m3u8DL-CLI
+      if: ${{ github.event.inputs.trailer_url != '' }}
+      run: |
+        mkdir workdir
+        .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
+        dir workdir
+
+    - name: Process raw.m3u8 with FFmpeg
+      run: |
+        # 确定输入分辨率选项
+        $resolution = "${{ github.event.inputs.resolution }}"
+        $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
+        $m3u8File = "workdir\$timestamp\raw.m3u8"
+
+        # 提取 FFmpeg 输出信息
+        $ffmpegInfo = .\ffmpeg.exe -i $m3u8File 2>&1
+
+        # 初始化变量
+        $regexLine = ""
+        $regexUrl = ""
+
+        # 分辨率逻辑分支
+        if ($resolution -eq "1080p") {
+          # 1080p 的逻辑
+          $regexLine = "^\[hls.*Skip \('\#-- video_gr\d+\s+HD.*?avg:\s+\d+(\.\d+)?\s+Mbps max:.*?Mbps --'\)$"
+          $regexUrl = "https.*video_.*gr(\d+).*\.m3u8"
+        } elseif ($resolution -eq "4K") {
+          # 4K 的逻辑
+          $regexLine = "^\[hls.*Skip \('\#-- video_gr\d+\s+UHD.*?avg:\s+\d+(\.\d+)?\s+Mbps max:.*?Mbps --'\)$"
+          $regexUrl = "https.*video_.*gr(\d+).*dovi.*\.m3u8"
+
+          # 回退到不含 dovi 的模式
+          if (-not ($ffmpegInfo | Select-String -Pattern "dovi")) {
+            Write-Host "未找到 dovi 关键字，回退至标准 UHD 模式"
+            $regexUrl = "https.*video_.*gr(\d+).*\.m3u8"
+          }
+        } else {
+          throw "无效的分辨率选项：$resolution"
+        }
+
+        # 提取与正则匹配的所有行
+        $matchedLines = $ffmpegInfo | Select-String -Pattern $regexLine
+        if (-not $matchedLines) {
+          throw "未找到符合条件的视频流信息！"
+        }
+
+        # 提取每行的第一个比特率值并比较
+        $bestLine = $null
+        $maxBitrate = 0
+        foreach ($line in $matchedLines) {
+          if ($line -match "avg:\s*(\d+(\.\d+)?)\s*Mbps") {
+            $bitrate = [float]$matches[1]
+            if ($bitrate -gt $maxBitrate) {
+              $maxBitrate = $bitrate
+              $bestLine = $line
+            }
+          }
+        }
+
+        if (-not $bestLine) {
+          throw "无法确定最高比特率的视频流！"
+        }
+
+        # 提取最佳行的 gr 值
+        if ($bestLine -match "gr(\d+)") {
+          $grValue = $matches[1]
+          Write-Host "找到的最佳 gr 值为: gr$grValue"
+        } else {
+          throw "无法从最佳行中提取 gr 值！"
+        }
+
+        # 匹配完整的视频子清单 URL
+        $subPlaylistUrl = ($ffmpegInfo | Select-String -Pattern "$regexUrl" | ForEach-Object { $_.Matches.Value }) | 
+                          Where-Object { $_ -match "gr$grValue" } | Select-Object -First 1
+        if (-not $subPlaylistUrl) {
+          throw "无法匹配到包含 gr$grValue 的子清单 URL！"
+        }
+
+        Write-Host "选择的子清单 URL: $subPlaylistUrl"
+
+        # 音频逻辑
+        if ($resolution -eq "1080p") {
+          # 1080p 音频直接指定 gr160
+          $audioRegex = "https.*_audio_en_gr160.*\.m3u8"
+          $audioUrl = ($ffmpegInfo | Select-String -Pattern $audioRegex | ForEach-Object { $_.Matches.Value }) | Select-Object -First 1
+
+          if (-not $audioUrl) {
+            throw "未找到音频流链接（gr160）！"
+          }
+
+          Write-Host "选择的 1080p 音频 URL: $audioUrl"
+
+          # 下载并保存 1080p 音频流
+          .\ffmpeg.exe -i $audioUrl -c copy audio.m4a
+
+        } elseif ($resolution -eq "4K") {
+          # 4K 音频基于最大 gr 值
+          $audioRegex = "https.*_audio_en_.*gr(\d+).*\.m3u8"
+          $audioUrls = $ffmpegInfo | Select-String -Pattern $audioRegex | ForEach-Object { $_.Matches.Value }
+
+          if (-not $audioUrls) {
+            throw "未找到音频流链接！"
+          }
+
+          # 比较音频 gr 值，选取最大值
+          $maxAudioGr = 0
+          $audioUrl = ""
+          foreach ($url in $audioUrls) {
+            if ($url -match "gr(\d+)") {
+              $audioGr = [int]$matches[1]
+              if ($audioGr -gt $maxAudioGr) {
+                $maxAudioGr = $audioGr
+                $audioUrl = $url
+              }
+            }
+          }
+
+          if (-not $audioUrl) {
+            throw "无法确定最佳音频流链接！"
+          }
+
+          Write-Host "选择的 4K 音频 URL: $audioUrl"
+
+          # 下载并保存 4K 音频流
+          .\ffmpeg.exe -i $audioUrl -c copy audio.ec3 *>&1 | Tee-Object -FilePath ffmpeg_audio_download.log
+          # 保存音频日志文件路径到环境变量
+          echo "FFMPEG_AUDIO_LOG=ffmpeg_audio_download.log" >> $env:GITHUB_ENV
+        }
+
+        # 提取字幕逻辑
+        $subtitleRegex = "https.*_cmn-Hans_subtitles.*\.m3u8"
+        $subtitleUrl = ($ffmpegInfo | Select-String -Pattern $subtitleRegex | ForEach-Object { $_.Matches.Value }) | Select-Object -First 1
+
+        if (-not $subtitleUrl) {
+          Write-Host "未找到字幕流链接，跳过字幕下载"
+        } else {
+          Write-Host "选择的字幕 URL: $subtitleUrl"
+
+          # 下载字幕流并转换为 SRT 格式
+          .\ffmpeg.exe -i $subtitleUrl -c copy subtitles.vtt
+          .\ffmpeg.exe -i subtitles.vtt subtitles.srt
+          Remove-Item subtitles.vtt
+          Write-Host "字幕下载并转换完成，输出文件：subtitles.srt"
+        }
+
+        # 下载并保存视频流
+        .\ffmpeg.exe -i $subPlaylistUrl -c copy video_${resolution}.mov *>&1 | Tee-Object -FilePath ffmpeg_download.log
+        # 保存日志文件路径到环境变量
+        echo "FFMPEG_LOG=ffmpeg_download.log" >> $env:GITHUB_ENV
+
+        # 视频、音频和字幕混流封装
+        if ($resolution -eq "1080p") {
+          $audioFile = "audio.m4a"
+        } elseif ($resolution -eq "4K") {
+          $audioFile = "audio.ec3"
+        }
+
+        if (Test-Path "subtitles.srt") {
+          Write-Host "封装视频、音频和字幕至 MKV"
+          .\ffmpeg.exe -i video_${resolution}.mov -i $audioFile -i subtitles.srt -c copy final_output.mkv
+          Write-Host "混流封装完成，输出文件：final_output.mkv"
+        } else {
+          Write-Host "封装视频和音频至 MOV（无字幕）"
+          .\ffmpeg.exe -i video_${resolution}.mov -i $audioFile -c copy final_output.mov
+          Write-Host "混流封装完成，输出文件：final_output.mov"
+        }
+    
+    - name: Rename FFmpeg outputs
+      run: |
+        # 提取用户输入的视频链接
+        $inputUrl = "${{ github.event.inputs.trailer_url }}"
+
+        # 使用正则表达式从链接中提取电影片名
+        if ($inputUrl -match "/movie/([^/]+)/") {
+          $movieTitle = $matches[1]
+          Write-Host "提取的电影片名为: $movieTitle"
+        } else {
+          throw "无法从输入链接中提取电影片名！"
+        }
+
+        # 确定用户选择的分辨率
+        $resolution = "${{ github.event.inputs.resolution }}"
+        if (-not $resolution) {
+          throw "未能获取用户选择的分辨率！"
+        }
+
+        # 初始化技术性标签
+        $technicalTags = @()
+
+        # 如果分辨率为 4K，则读取日志并添加技术性标签
+        if ($resolution -eq "4K") {
+          # 读取 FFmpeg 视频和音频日志内容
+          $videoLogFile = "${{ env.FFMPEG_LOG }}"
+          $audioLogFile = "${{ env.FFMPEG_AUDIO_LOG }}"
+
+          if (-not (Test-Path $videoLogFile)) {
+            throw "无法找到视频日志文件！"
+          }
+          if (-not (Test-Path $audioLogFile)) {
+            throw "无法找到音频日志文件！"
+          }
+
+          $videoLog = Get-Content $videoLogFile
+          $audioLog = Get-Content $audioLogFile
+
+          # 视频技术性标签
+          if ($videoLog -match "DOVI configuration record") {
+            $technicalTags += "DolbyVision"
+          }
+
+          # 音频技术性标签
+          if ($audioLog -match "Dolby Digital Plus \+ Dolby Atmos") {
+            $technicalTags += "DolbyAtmos"
+          }
+        }
+
+        # 构造技术性标签字符串
+        $technicalTagsString = $technicalTags -join "_"
+
+        # 确定输出文件的扩展名
+        $originalFile = Get-Item final_output.*
+        $extension = $originalFile.Extension
+
+        # 构造新文件名
+        if ($resolution -eq "4K") {
+          if ($technicalTagsString) {
+            # 添加技术性标签的 4K 文件名
+            $newFileName = "${movieTitle}_${resolution}_AppleTrailer_${technicalTagsString}${extension}"
+          } else {
+            # 回退至原来的 4K 文件名逻辑
+            $newFileName = "${movieTitle}_${resolution}_AppleTrailer${extension}"
+          }
+        } else {
+          # 1080p 的文件名逻辑保持不变
+          $newFileName = "${movieTitle}_${resolution}_AppleTrailer${extension}"
+        }
+
+        Write-Host "重命名文件为: $newFileName"
+
+        # 重命名文件
+        Rename-Item -Path $originalFile.FullName -NewName $newFileName
+
+        # 提取文件名基础部分并保存到环境变量
+        $baseName = [System.IO.Path]::GetFileNameWithoutExtension($newFileName)
+        echo "RENAMED_FILE_BASE=$baseName" >> $env:GITHUB_ENV
+
+        # 将新文件名写入环境变量
+        echo "RENAMED_FILE=$newFileName" >> $env:GITHUB_ENV
+
+    - name: Upload FFmpeg outputs
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.RENAMED_FILE_BASE }}
+        path: |
+          ${{ env.RENAMED_FILE }}
