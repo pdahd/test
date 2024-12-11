@@ -60,8 +60,19 @@ jobs:
         .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
         dir workdir
         $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
-        $m3u8File = "workdir\$timestamp\raw.m3u8"
-        .\ffmpeg.exe -i $m3u8File
+        $rawM3u8File = "workdir\$timestamp\raw.m3u8"
+        $masterM3u8File = "workdir\$timestamp\master.m3u8"
+        $newM3u8File = "workdir\$timestamp\combined.m3u8"
+    
+        if (Test-Path $masterM3u8File) {
+          echo "# Combined M3U8 file" > $newM3u8File
+          Get-Content $masterM3u8File >> $newM3u8File
+          echo "" >> $newM3u8File
+          Get-Content $rawM3u8File >> $newM3u8File
+        } else {
+          Copy-Item $rawM3u8File $newM3u8File
+        }
+        echo "New M3U8 file created at $newM3u8File"
 
     - name: Upload results
       uses: actions/upload-artifact@v4
