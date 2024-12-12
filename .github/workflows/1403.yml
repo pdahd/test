@@ -114,6 +114,7 @@ jobs:
 
         $bestStream = $null
         $maxBandwidth = 0
+        $finalResolution = "Unknown"
 
         foreach ($match in $matches) {
           $streamInf = $match.Groups[1].Value
@@ -133,6 +134,7 @@ jobs:
               if ($averageBandwidth -gt $maxBandwidth) {
                 $maxBandwidth = $averageBandwidth
                 $bestStream = $url
+                $finalResolution = $resolution # 动态调整最终分辨率
               }
             }
           }
@@ -159,6 +161,7 @@ jobs:
                 if ($averageBandwidth -gt $maxBandwidth) {
                   $maxBandwidth = $averageBandwidth
                   $bestStream = $url
+                  $finalResolution = "1080p"
                 }
               }
             }
@@ -172,9 +175,10 @@ jobs:
 
         Write-Host "Best Stream URL: $bestStream"
         echo "env:BEST_STREAM_URL=$bestStream" >> $env:GITHUB_ENV
+        echo "env:FINAL_RESOLUTION=$finalResolution" >> $env:GITHUB_ENV
 
-        # 下载视频流
-        $outputFileName = "$movieTitle-$resolution-AppleTrailer.mov"
+        # 文件命名并下载
+        $outputFileName = "$movieTitle-$finalResolution-AppleTrailer.mov"
         Write-Host "Output File Name: $outputFileName"
         .\ffmpeg.exe -i "$bestStream" -c copy "$outputFileName"
         Write-Host "Downloaded video file: $outputFileName"
