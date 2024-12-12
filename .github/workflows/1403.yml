@@ -134,7 +134,6 @@ jobs:
               if ($averageBandwidth -gt $maxBandwidth) {
                 $maxBandwidth = $averageBandwidth
                 $bestStream = $url
-                $finalResolution = $resolution # 动态调整最终分辨率
               }
             }
           }
