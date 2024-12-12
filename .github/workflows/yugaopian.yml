@@ -162,6 +162,8 @@ jobs:
             $resolutionName = "1080p"
           } elseif ($resolutionWidth -ge 3800 -and $resolutionWidth -le 4500) {
             $resolutionName = "4K"
+          } else {
+            $resolutionName = "${resolutionWidth}p" }
           }
 
           # 调试：打印分辨率命名结果
