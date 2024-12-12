@@ -114,7 +114,7 @@ jobs:
 
         $bestStream = $null
         $maxBandwidth = 0
-        $finalResolution = "Unknown"
+        $finalResolution = $resolution
 
         foreach ($match in $matches) {
           $streamInf = $match.Groups[1].Value
