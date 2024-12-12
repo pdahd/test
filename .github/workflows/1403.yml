@@ -99,11 +99,9 @@ jobs:
 
         # 定义正则表达式
         $streamRegex = '#EXT-X-STREAM-INF:(.*?)\n(https?://[^\s]+)'
-
-        # 匹配所有流
         $matches = [regex]::Matches($m3u8Content, $streamRegex, 'IgnoreCase, Multiline')
 
-        # 定义分辨率范围
+        # 分辨率范围
         if ($resolution -eq '1080p') {
           $minWidth = 1900
           $maxWidth = 2000
@@ -112,15 +110,15 @@ jobs:
           $maxWidth = 4500
         }
 
+        # 查找最佳流
         $bestStream = $null
         $maxBandwidth = 0
-        $finalResolution = $resolution
+        $finalResolution = "Unknown"
 
         foreach ($match in $matches) {
           $streamInf = $match.Groups[1].Value
           $url = $match.Groups[2].Value
 
-          # 提取分辨率和平均带宽
           $resolutionMatch = [regex]::Match($streamInf, 'RESOLUTION=(\d+)x(\d+)', 'IgnoreCase')
           $bandwidthMatch = [regex]::Match($streamInf, 'AVERAGE-BANDWIDTH=(\d+)', 'IgnoreCase')
 
@@ -128,12 +126,11 @@ jobs:
             $width = [int]$resolutionMatch.Groups[1].Value
             $averageBandwidth = [int]$bandwidthMatch.Groups[1].Value
 
-            # 检查分辨率宽度是否在指定范围内
             if ($width -ge $minWidth -and $width -le $maxWidth) {
-              # 如果找到更高的带宽，更新最佳流
               if ($averageBandwidth -gt $maxBandwidth) {
                 $maxBandwidth = $averageBandwidth
                 $bestStream = $url
+                $finalResolution = $resolution # 动态调整最终分辨率
               }
             }
           }
