@@ -154,7 +154,6 @@ jobs:
 
         if ($bestStream) {
           Write-Host "`e[32mFound the best stream URL (1080p fallback): $bestStream`e[0m" 
-          echo "env:BEST_STREAM_URL=$bestStream" >> $env:GITHUB_ENV
 
           # 提取分辨率并生成视频文件名
           $resolutionWidth = [regex]::Match($bestStream, 'RESOLUTION=(\d+)x(\d+)', 'IgnoreCase').Groups[1].Value
