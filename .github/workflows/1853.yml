@@ -1,0 +1,202 @@
+name: Apple 电影预告片无损下载
+
+on:
+  workflow_dispatch:
+    inputs:
+      trailer_url:
+        description: '输入 Apple 电影预告片链接'
+        required: true
+      resolution:
+        description: '选择预告片分辨率'
+        required: false
+        type: choice
+        options:
+          - '1080p'
+          - '4K'
+
+jobs:
+  download-apple-trailers:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download N_m3u8DL-CLI
+      run: |
+        Invoke-WebRequest -Uri https://github.com/nilaoda/N_m3u8DL-CLI/releases/download/3.0.2/N_m3u8DL-CLI_v3.0.2.exe -OutFile N_m3u8DL-CLI.exe
+    - name: Download ffmpeg
+      run: |
+        Invoke-WebRequest -Uri https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip -OutFile ffmpeg-latest.zip
+        Expand-Archive -Path ffmpeg-latest.zip -DestinationPath ffmpeg
+        Move-Item ffmpeg/*/bin/ffmpeg.exe .
+    - name: Process input URL
+      run: |
+        $trailerUrl = "${{ github.event.inputs.trailer_url }}"
+        # 获取输入链接的源代码
+        $sourceCode = curl -s "$trailerUrl"
+        
+        # 提取包含 m3u8 的完整 HTML 硬编码链接
+        $m3u8Links = ($sourceCode | Select-String -Pattern 'https.*?\.m3u8.*?"') `
+                      -replace '&amp;', '&' `
+                      -replace '.*content="(https.*?\.m3u8.*?)".*', '$1'
+        
+        # 选择第一个匹配链接
+        if ($m3u8Links.Length -gt 0) {
+          $processedUrl = $m3u8Links[0]
+        } else {
+          throw "未找到包含 m3u8 的 HTML 硬编码链接！"
+        }
+        
+        echo "Found m3u8 URL: $processedUrl"
+        echo $processedUrl > input.txt
+    - name: Parse M3U8 with N_m3u8DL-CLI
+      if: ${{ github.event.inputs.trailer_url != '' }}
+      run: |
+        mkdir workdir
+        .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
+        dir workdir
+        $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
+        $rawM3u8File = "workdir\$timestamp\raw.m3u8"
+        $masterM3u8File = "workdir\$timestamp\master.m3u8"
+        $newM3u8File = "workdir\$timestamp\combined.m3u8"
+    
+        if (Test-Path $masterM3u8File) {
+          echo "# Combined M3U8 file" > $newM3u8File
+          Get-Content $masterM3u8File >> $newM3u8File
+          echo "" >> $newM3u8File
+          Get-Content $rawM3u8File >> $newM3u8File
+        } else {
+          Copy-Item $rawM3u8File $newM3u8File
+        }
+        echo "New M3U8 file created at $newM3u8File"
+
+    - name: Process combined.m3u8 for Best Stream
+      run: |
+        # 确定输入分辨率选项
+        $resolution = "${{ github.event.inputs.resolution }}"
+        $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
+        $m3u8File = "workdir\$timestamp\combined.m3u8"
+
+        # 读取 M3U8 文件内容
+        $m3u8Content = Get-Content $m3u8File -Raw
+
+        # 调试：打印 M3U8 文件内容
+        Write-Host "Combined M3U8 File Content:"
+        Write-Host $m3u8Content
+
+        # 匹配片名
+        $titleRegex = '#EXT-X-SESSION-DATA:DATA-ID="com.apple.hls.title",VALUE="([^"]+)"'
+        $titleMatch = [regex]::Match($m3u8Content, $titleRegex)
+
+        if ($titleMatch.Success) {
+          $movieTitle = $titleMatch.Groups[1].Value
+          Write-Host "Matched Title Line: $titleMatch.Value"
+          Write-Host "Extracted Movie Title: $movieTitle"
+          echo "env:MOVIE_TITLE=$movieTitle" >> $env:GITHUB_ENV
+        } else {
+          Write-Host "No movie title found. Task cancelled."
+          exit 1
+        }
+
+        # 定义正则表达式
+        $streamRegex = '#EXT-X-STREAM-INF:(.*?)\n(https?://[^\s]+)'
+
+        # 匹配所有流
+        $matches = [regex]::Matches($m3u8Content, $streamRegex, 'IgnoreCase, Multiline')
+
+        # 调试：打印匹配结果
+        foreach ($match in $matches) {
+          Write-Host "Matched Stream Info: $($match.Groups[1].Value)"
+          Write-Host "Matched URL: $($match.Groups[2].Value)"
+        }
+
+        $bestStream = $null
+        $maxBandwidth = 0
+
+        if ($resolution -eq '1080p') {
+          $minWidth = 1900
+          $maxWidth = 2000
+        } elseif ($resolution -eq '4K') {
+          $minWidth = 3800
+          $maxWidth = 4500
+        }
+
+        foreach ($match in $matches) {
+          $streamInf = $match.Groups[1].Value
+          $url = $match.Groups[2].Value
+      
+          # 提取分辨率和平均带宽
+          $resolutionMatch = [regex]::Match($streamInf, 'RESOLUTION=(\d+)x(\d+)', 'IgnoreCase')
+          $bandwidthMatch = [regex]::Match($streamInf, 'AVERAGE-BANDWIDTH=(\d+)', 'IgnoreCase')
+
+          if ($resolutionMatch.Success -and $bandwidthMatch.Success) {
+            $width = [int]$resolutionMatch.Groups[1].Value
+            $averageBandwidth = [int]$bandwidthMatch.Groups[1].Value
+
+            # 调试：打印提取结果
+            Write-Host "Extracted Resolution Width: $width"
+            Write-Host "Extracted Average Bandwidth: $averageBandwidth"
+
+            # 检查分辨率宽度是否在指定范围内
+            if ($width -ge $minWidth -and $width -le $maxWidth) {
+              # 如果找到更高的带宽，更新最佳流
+              if ($averageBandwidth -gt $maxBandwidth) {
+                $maxBandwidth = $averageBandwidth
+                $bestStream = $url
+              }
+            }
+          }
+        }
+
+        if ($bestStream) {
+          Write-Host "Found the best stream URL: $bestStream"
+          echo "env:BEST_STREAM_URL=$bestStream" >> $env:GITHUB_ENV
+        } else {
+          if ($resolution -eq '4K') {
+            # 如果4K未找到，回退到1080p
+            Write-Host "No 4K stream found, falling back to 1080p."
+            $minWidth = 1900
+            $maxWidth = 2000
+            $maxBandwidth = 0
+            $bestStream = $null
+
+            foreach ($match in $matches) {
+              $streamInf = $match.Groups[1].Value
+              $url = $match.Groups[2].Value
+          
+              # 提取分辨率和平均带宽
+              $resolutionMatch = [regex]::Match($streamInf, 'RESOLUTION=(\d+)x(\d+)', 'IgnoreCase')
+              $bandwidthMatch = [regex]::Match($streamInf, 'AVERAGE-BANDWIDTH=(\d+)', 'IgnoreCase')
+
+              if ($resolutionMatch.Success -and $bandwidthMatch.Success) {
+                $width = [int]$resolutionMatch.Groups[1].Value
+                $averageBandwidth = [int]$bandwidthMatch.Groups[1].Value
+
+                # 调试：打印提取结果
+                Write-Host "Extracted Resolution Width: $width"
+                Write-Host "Extracted Average Bandwidth: $averageBandwidth"
+
+                # 检查分辨率宽度是否在指定范围内
+                if ($width -ge $minWidth -and $width -le $maxWidth) {
+                  # 如果找到更高的带宽，更新最佳流
+                  if ($averageBandwidth -gt $maxBandwidth) {
+                    $maxBandwidth = $averageBandwidth
+                    $bestStream = $url
+                  }
+                }
+              }
+            }
+
+            if ($bestStream) {
+              Write-Host "Found the best stream URL (1080p fallback): $bestStream"
+              echo "env:BEST_STREAM_URL=$bestStream" >> $env:GITHUB_ENV
+            } else {
+              Write-Host "No suitable stream found for 1080p resolution. Task cancelled."
+              exit 1
+            }
+          } else {
+            Write-Host "No suitable stream found for 1080p resolution. Task cancelled."
+            exit 1
+          }
+        }
