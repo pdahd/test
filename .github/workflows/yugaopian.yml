@@ -157,13 +157,15 @@ jobs:
           echo "env:BEST_STREAM_URL=$bestStream" >> $env:GITHUB_ENV
 
           # 提取分辨率并生成视频文件名
-          $resolutionWidth = [regex]::Match($url, 'RESOLUTION=(\d+)x(\d+)', 'IgnoreCase').Groups[1].Value
+          $resolutionWidth = [regex]::Match($bestStream, 'RESOLUTION=(\d+)x(\d+)', 'IgnoreCase').Groups[1].Value
           if ($resolutionWidth -ge 1900 -and $resolutionWidth -le 2000) {
             $resolutionName = "1080p"
           } elseif ($resolutionWidth -ge 3800 -and $resolutionWidth -le 4500) {
             $resolutionName = "4K"
           }
 
+          # 调试：打印分辨率命名结果
+          Write-Host "`e[32mResolution Name: $resolutionName`e[0m"
           $outputFileName = "${movieTitle}_${resolutionName}_AppleTrailer.mov"
 
           # 下载视频文件
