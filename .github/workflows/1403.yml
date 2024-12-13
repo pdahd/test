@@ -113,7 +113,7 @@ jobs:
         # 查找最佳流
         $bestStream = $null
         $maxBandwidth = 0
-        $finalResolution = "Unknown"
+        $finalResolution = $resolution
 
         foreach ($match in $matches) {
           $streamInf = $match.Groups[1].Value
@@ -130,7 +130,6 @@ jobs:
               if ($averageBandwidth -gt $maxBandwidth) {
                 $maxBandwidth = $averageBandwidth
                 $bestStream = $url
-                $finalResolution = $resolution # 动态调整最终分辨率
               }
             }
           }
