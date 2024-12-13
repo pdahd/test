@@ -182,7 +182,7 @@ jobs:
 
         $bestAudioUrl = $null
 
-        if ($resolution -eq '1080p') {
+        if ($finalResolution -eq '1080p') {
           # 定义正则表达式
           $audioRegexOld = '(https?://[^\s]+_audio_en-US_gr160\.m3u8)'
           $audioRegexNew = '(https?://[^\s]+_audio_en_gr160_.*?\.m3u8)'
@@ -210,7 +210,7 @@ jobs:
             Write-Host "No suitable audio stream found. Task cancelled."
             exit 1
           }
-        } elseif ($resolution -eq '4K') {
+        } elseif ($finalResolution -eq '4K') {
           # 定义正则表达式
           $audioRegexNew4K = '(https?://[^\s]+_audio_en_gr(\d+)_.*?\.m3u8)'
 
