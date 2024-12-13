@@ -212,7 +212,7 @@ jobs:
           }
         }
         if ($bestAudioUrl) {
-          Write-Host "`e[32mFound the best audio URL: $bestAudioUrl`e[0m"
+          Write-Host "Found the best audio URL: $bestAudioUrl"
           if ($finalResolution -eq '1080p') {
             .\ffmpeg.exe -i $bestAudioUrl -c copy audio.m4a
             echo "env:AUDIO_FILE=audio.m4a" >> $env:GITHUB_ENV
