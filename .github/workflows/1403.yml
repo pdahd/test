@@ -180,7 +180,9 @@ jobs:
 
         echo "env:OUTPUT_FILE=$outputFileName" >> $env:GITHUB_ENV
 
-        if ($finalResolution -eq '1080p') {
+        $bestAudioUrl = $null
+
+        if ($resolution -eq '1080p') {
           # 定义正则表达式
           $audioRegexOld = '(https?://[^\s]+_audio_en-US_gr160\.m3u8)'
           $audioRegexNew = '(https?://[^\s]+_audio_en_gr160_.*?\.m3u8)'
@@ -190,8 +192,6 @@ jobs:
 
           # 匹配所有音频链接 (新预告片)
           $audioMatchesNew = [regex]::Matches($m3u8Content, $audioRegexNew, 'IgnoreCase')
-
-          $bestAudioUrl = $null
 
           # 尝试匹配老预告片格式的音频链接
           if ($audioMatchesOld.Count -gt 0) {
@@ -210,6 +210,32 @@ jobs:
             Write-Host "No suitable audio stream found. Task cancelled."
             exit 1
           }
+        } elseif ($resolution -eq '4K') {
+          # 定义正则表达式
+          $audioRegexNew4K = '(https?://[^\s]+_audio_en_gr(\d+)_.*?\.m3u8)'
+
+          # 匹配所有音频链接 (新预告片)
+          $audioMatchesNew4K = [regex]::Matches($m3u8Content, $audioRegexNew4K, 'IgnoreCase')
+
+          $maxGrValue = 0
+
+          foreach ($match in $audioMatchesNew4K) {
+            $audioUrl = $match.Groups[1].Value
+            $grValue = [int]$match.Groups[2].Value
+
+            if ($grValue -gt $maxGrValue) {
+              $maxGrValue = $grValue
+              $bestAudioUrl = $audioUrl
+            }
+          }
+
+          if ($bestAudioUrl) {
+            Write-Host "Found the best audio URL: $bestAudioUrl"
+            .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3 *>&1 | Tee-Object -FilePath ffmpeg_audio_download.log
+            echo "env:AUDIO_FILE=audio.ec3" >> $env:GITHUB_ENV
+            echo "env:FFMPEG_AUDIO_LOG=ffmpeg_audio_download.log" >> $env:GITHUB_ENV
+          } else {
+            Write-Host "No suitable audio stream found. Task cancelled."
+            exit 1
+          }
         }
-        
-        
