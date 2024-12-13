@@ -85,7 +85,7 @@ jobs:
         $m3u8Content = Get-Content $m3u8File -Raw
 
         # 匹配片名
-        $titleRegex = '#EXT-X-SESSION-DATA:DATA-ID="com.apple.hls.title",VALUE="([^"]+)"'
+        $titleRegex = '#EXT-X-SESSION-DATA:DATA-ID="com.apple.hls.title",VALUE="([^"]+?)(?:\s+Trailer)?"'
         $titleMatch = [regex]::Match($m3u8Content, $titleRegex)
 
         if ($titleMatch.Success) {
