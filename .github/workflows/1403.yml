@@ -183,7 +183,7 @@ jobs:
         # 音频提取逻辑
         if ($finalResolution -eq "1080p") {
           # 1080p 音频直接指定 gr160
-          $audioRegex = "https.*_audio_en_gr160.*\.m3u8"
+          $audioRegex = "https.*_audio_en_.*gr160.*\.m3u8"
           $audioUrl = ($m3u8Content | Select-String -Pattern $audioRegex | ForEach-Object { $_.Matches.Value }) | Select-Object -First 1
           if (-not $audioUrl) {
             throw "未找到音频流链接（gr160）！"
