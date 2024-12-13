@@ -201,27 +201,4 @@ jobs:
               break
             }
           }
-        } elseif ($finalResolution -eq '4K') {
-          foreach ($match in $audioMatches) {
-            $audioUrl = $match.Groups[1].Value
-            $grValue = [int]$match.Groups[2].Value
-            if ($grValue -gt $maxGrValue) {
-              $maxGrValue = $grValue
-              $bestAudioUrl = $audioUrl
-            }
-          }
-        }
-        if ($bestAudioUrl) {
-          Write-Host "Found the best audio URL: $bestAudioUrl"
-          if ($finalResolution -eq '1080p') {
-            .\ffmpeg.exe -i $bestAudioUrl -c copy audio.m4a
-            echo "env:AUDIO_FILE=audio.m4a" >> $env:GITHUB_ENV
-          } elseif ($finalResolution -eq '4K') {
-            .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3 *>&1 | Tee-Object -FilePath ffmpeg_audio_download.log
-            echo "env:AUDIO_FILE=audio.ec3" >> $env:GITHUB_ENV
-            echo "env:FFMPEG_AUDIO_LOG=ffmpeg_audio_download.log" >> $env:GITHUB_ENV
-          }
-        } else {
-          Write-Host "No suitable audio stream found. Task cancelled."
-          exit 1
-        }
+        } 
