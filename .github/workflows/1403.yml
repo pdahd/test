@@ -179,4 +179,44 @@ jobs:
         Write-Host "Downloaded video file: $outputFileName"
 
         echo "env:OUTPUT_FILE=$outputFileName" >> $env:GITHUB_ENV
+
+        # 音频提取逻辑
+        if ($finalResolution -eq "1080p") {
+          # 1080p 音频直接指定 gr160
+          $audioRegex = "https.*_audio_en_gr160.*\.m3u8"
+          $audioUrl = ($m3u8Content | Select-String -Pattern $audioRegex | ForEach-Object { $_.Matches.Value }) | Select-Object -First 1
+          if (-not $audioUrl) {
+            throw "未找到音频流链接（gr160）！"
+          }
+          Write-Host "选择的 1080p 音频 URL: $audioUrl"
+          # 下载并保存 1080p 音频流
+          .\ffmpeg.exe -i $audioUrl -c copy audio.m4a
+        } elseif ($finalResolution -eq "4K") {
+          # 4K 音频基于最大 gr 值
+          $audioRegex = "https.*_audio_en_.*gr(\d+).*\.m3u8"
+          $audioUrls = $m3u8Content | Select-String -Pattern $audioRegex | ForEach-Object { $_.Matches.Value }
+          if (-not $audioUrls) {
+            throw "未找到音频流链接！"
+          }
+          # 比较音频 gr 值，选取最大值
+          $maxAudioGr = 0
+          $audioUrl = ""
+          foreach ($url in $audioUrls) {
+            if ($url -match "gr(\d+)") {
+              $audioGr = [int]$matches[1]
+              if ($audioGr -gt $maxAudioGr) {
+                $maxAudioGr = $audioGr
+                $audioUrl = $url
+              }
+            }
+          }
+          if (-not $audioUrl) {
+            throw "无法确定最佳音频流链接！"
+          }
+          Write-Host "选择的 4K 音频 URL: $audioUrl"
+          # 下载并保存 4K 音频流
+          .\ffmpeg.exe -i $audioUrl -c copy audio.ec3 *>&1 | Tee-Object -FilePath ffmpeg_audio_download.log
+          # 保存音频日志文件路径到环境变量
+          echo "FFMPEG_AUDIO_LOG=ffmpeg_audio_download.log" >> $env:GITHUB_ENV
+        }
         
