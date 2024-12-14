@@ -243,6 +243,89 @@ jobs:
         echo "env:OUTPUT_FILE=$outputFileName" >> $env:GITHUB_ENV
 
         # 调试：打印用户选择的语言值
+        Write-Host "`e[32mUser Selected Audio Language: $audioLanguage`e[0m"
+        # 定义音频语言映射表
+        $languageMap = @{
+          "英语" = "en"
+          "德语" = "de"
+          "拉丁美洲西班牙语" = "es-419"
+          "欧洲西班牙语" = "es-ES"
+          "加拿大法语" = "fr-CA"
+          "法国法语" = "fr-FR"
+          "意大利语" = "it"
+          "日语" = "ja"
+          "巴西葡萄牙语" = "pt-BR"
+          "俄语" = "ru"
+        }
+        
+        # 确定音频语言标签
+        $languageTag = $languageMap[$audioLanguage]
+        # 调试：打印处理后的语言标签值
+        Write-Host "`e[32mProcessed Language Tag: $languageTag`e[0m"
+        $bestAudioUrl = $null
+        if ($finalResolution -eq '1080p') {
+          # 默认的英语标签
+          $defaultAudioTag = "en"
+          # 定义正则表达式
+          $audioRegex = "(https?://[^\s]+_audio_${languageTag}_gr160_.*?\.m3u8)"
+          $audioRegexDefault = "(https?://[^\s]+_audio_${defaultAudioTag}_gr160_.*?\.m3u8)"
+          $audioRegexOld = "(https?://[^\s]+_audio_en-US_gr160\.m3u8)"
+          # 匹配所有音频链接 (用户选择的语言)
+          $audioMatches = [regex]::Matches($m3u8Content, $audioRegex, 'IgnoreCase')
+          # 如果未找到用户选择的语言，则回退到默认的英语音频
+          if ($audioMatches.Count -eq 0) {
+            $audioMatches = [regex]::Matches($m3u8Content, $audioRegexDefault, 'IgnoreCase')
+            # 如果仍未找到，则尝试匹配老预告片格式的英语音频
+            if ($audioMatches.Count -eq 0) {
+              $audioMatches = [regex]::Matches($m3u8Content, $audioRegexOld, 'IgnoreCase')
+            }
+          }
+          # 提取最佳音频链接
+          if ($audioMatches.Count -gt 0) {
+            $bestAudioUrl = $audioMatches[0].Groups[1].Value
+          }
+          if ($bestAudioUrl) {
+            Write-Host "Found the best audio URL: $bestAudioUrl"
+            .\ffmpeg.exe -i $bestAudioUrl -c copy audio.m4a
+            echo "env:AUDIO_FILE=audio.m4a" >> $env:GITHUB_ENV
+          } else {
+            Write-Host "No suitable audio stream found. Task cancelled."
+            exit 1
+          }
+        } elseif ($finalResolution -eq '4K') {
+          # 默认的英语标签
+          $defaultAudioTag = "en"
+          # 定义正则表达式
+          $audioRegex = "(https?://[^\s]+_audio_${languageTag}_gr(\d+)_.*?\.m3u8)"
+          $audioRegexDefault = "(https?://[^\s]+_audio_${defaultAudioTag}_gr(\d+)_.*?\.m3u8)"
+          # 匹配所有音频链接 (用户选择的语言)
+          $audioMatches = [regex]::Matches($m3u8Content, $audioRegex, 'IgnoreCase')
+          # 如果未找到用户选择的语言，则回退到默认的英语音频
+          if ($audioMatches.Count -eq 0) {
+            $audioMatches = [regex]::Matches($m3u8Content, $audioRegexDefault, 'IgnoreCase')
+          }
+          $maxGrValue = 0
+          # 比对gr数值，选择最大gr值的音频链接
+          foreach ($match in $audioMatches) {
+            $audioUrl = $match.Groups[1].Value
+            $grValue = [int]$match.Groups[2].Value
+            if ($grValue -gt $maxGrValue) {
+              $maxGrValue = $grValue
+              $bestAudioUrl = $audioUrl
+            }
+          }
+          if ($bestAudioUrl) {
+            Write-Host "Found the best audio URL: $bestAudioUrl"
+            .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3 *>&1 | Tee-Object -FilePath ffmpeg_audio_download.log
+            echo "env:AUDIO_FILE=audio.ec3" >> $env:GITHUB_ENV
+            echo "env:FFMPEG_AUDIO_LOG=ffmpeg_audio_download.log" >> $env:GITHUB_ENV
+          } else {
+            Write-Host "No suitable audio stream found. Task cancelled."
+            exit 1
+          }
+        }
+        
+        # 调试：打印用户选择的语言值
         Write-Host "`e[32mUser Selected Subtitle Language: $subtitleLanguage`e[0m"
         # 定义字幕语言映射表
         $subtitleLanguageMap = @{
