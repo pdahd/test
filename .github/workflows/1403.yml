@@ -196,6 +196,8 @@ jobs:
 
         echo "env:OUTPUT_FILE=$outputFileName" >> $env:GITHUB_ENV
 
+        # 调试：打印用户选择的语言值
+        Write-Host "`e[32mUser Selected Audio Language: $audioLanguage`e[0m"
         # 定义音频语言映射表
         $languageMap = @{
           "英语" = "en"
@@ -212,6 +214,8 @@ jobs:
         
         # 确定音频语言标签
         $languageTag = $languageMap[$audioLanguage]
+        # 调试：打印处理后的语言标签值
+        Write-Host "`e[32mProcessed Language Tag: $languageTag`e[0m"
 
         $bestAudioUrl = $null
 
