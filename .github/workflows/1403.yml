@@ -223,8 +223,8 @@ jobs:
           # 默认的英语标签
           $defaultAudioTag = "en"
           # 定义正则表达式
-          $audioRegex = "(https?://[^\s]+_audio_$languageTag_gr160_.*?\.m3u8)"
-          $audioRegexDefault = "(https?://[^\s]+_audio_$defaultAudioTag_gr160_.*?\.m3u8)"
+          $audioRegex = "(https?://[^\s]+_audio_$(languageTag)_gr160_.*?\.m3u8)"
+          $audioRegexDefault = "(https?://[^\s]+_audio_$(defaultAudioTag)_gr160_.*?\.m3u8)"
           $audioRegexOld = "(https?://[^\s]+_audio_en-US_gr160\.m3u8)"
 
           # 匹配所有音频链接 (用户选择的语言)
@@ -256,8 +256,8 @@ jobs:
           # 默认的英语标签
           $defaultAudioTag = "en"
           # 定义正则表达式
-          $audioRegex = "(https?://[^\s]+_audio_$languageTag_gr(\d+)_.*?\.m3u8)"
-          $audioRegexDefault = "(https?://[^\s]+_audio_$defaultAudioTag_gr(\d+)_.*?\.m3u8)"
+          $audioRegex = "(https?://[^\s]+_audio_$(languageTag)_gr(\d+)_.*?\.m3u8)"
+          $audioRegexDefault = "(https?://[^\s]+_audio_$(defaultAudioTag)_gr(\d+)_.*?\.m3u8)"
 
           # 匹配所有音频链接 (用户选择的语言)
           $audioMatches = [regex]::Matches($m3u8Content, $audioRegex, 'IgnoreCase')
