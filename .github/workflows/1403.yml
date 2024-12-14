@@ -133,6 +133,7 @@ jobs:
           Copy-Item $rawM3u8File $newM3u8File
         }
         echo "New M3U8 file created at $newM3u8File"
+        Get-Content "workdir\$timestamp\combined.m3u8"
 
     - name: Process combined.m3u8 for Best Stream
       run: |
@@ -152,7 +153,7 @@ jobs:
 
         if ($titleMatch.Success) {
           $movieTitle = $titleMatch.Groups[1].Value
-          Write-Host "Extracted Movie Title: $movieTitle"
+          Write-Host "`e[32mExtracted Movie Title: $movieTitle`e[0m"
           echo "env:MOVIE_TITLE=$movieTitle" >> $env:GITHUB_ENV
         } else {
           Write-Host "No movie title found. Task cancelled."
@@ -236,9 +237,9 @@ jobs:
 
         # 文件命名并下载
         $outputFileName = "$movieTitle-$finalResolution-AppleTrailer.mov"
-        Write-Host "Output File Name: $outputFileName"
+        Write-Host "`e[32mOutput File Name: $outputFileName`e[0m"
         .\ffmpeg.exe -i "$bestStream" -c copy "$outputFileName"
-        Write-Host "Downloaded video file: $outputFileName"
+        Write-Host "`e[32mDownloaded video file: $outputFileName`e[0m"
 
         echo "env:OUTPUT_FILE=$outputFileName" >> $env:GITHUB_ENV
 
