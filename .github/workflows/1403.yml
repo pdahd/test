@@ -239,9 +239,10 @@ jobs:
         # 文件命名并下载
         $videoFileName = "$movieTitle-$finalResolution-AppleTrailer"
         Write-Host "`e[32mOutput File Name: ${videoFileName}.mov`e[0m"
-        .\ffmpeg.exe -i "$bestStream" -c copy "${videoFileName}.mov"
+        .\ffmpeg.exe -i "$bestStream" -c copy "${videoFileName}.mov" *>&1 | Tee-Object -FilePath ffmpeg_download.log
         Write-Host "`e[32mDownloaded video file: ${videoFileName}.mov`e[0m"
         echo "VIDEO_FILE=${videoFileName}.mov" >> $env:GITHUB_ENV
+        echo "FFMPEG_LOG=ffmpeg_download.log" >> $env:GITHUB_ENV
 
         # 调试：打印用户选择的语言值
         Write-Host "`e[32mUser Selected Audio Language: $audioLanguage`e[0m"
