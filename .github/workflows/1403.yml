@@ -35,45 +35,46 @@ on:
         options:
           - '中文简体'
           - '中文繁體'
-          - '粤语 廣東話'
+          - '中文粤语'
           - '英语 English'
-          - '日语 日本語'
-          - '韩语 한국어'
           - '阿拉伯语 العربية'
           - '保加利亚语 български'
-          - '克罗地亚语 Hrvatski'
           - '捷克语 Čeština'
           - '丹麦语 dansk'
-          - '荷兰语 Nederlands'
+          - '德语 Deutsch'
+          - '希腊语 Ελληνικά'
+          - '西班牙语（拉丁美洲） Español (Latinoamérica)'
+          - '西班牙语（西班牙） Español (España)'
           - '爱沙尼亚语 eesti'
           - '芬兰语 Suomi'
           - '法语（加拿大） Français (Canada)'
           - '法语（法国） Français (France)'
-          - '德语 Deutsch'
-          - '希腊语 Ελληνικά'
           - '希伯来语 עברית'
           - '印地语 हिन्दी'
           - '匈牙利语 magyar'
-          - '印度尼西亚语 Bahasa Indonesia'
+          - '印尼语 Bahasa Indonesia'
           - '意大利语 Italiano'
-          - '拉脱维亚语 Latviešu'
-          - '立陶宛语 Lietuvių'
+          - '日语 日本語'
+          - '韩语 한국어'
+          - '立陶宛语 lietuvių'
+          - '拉脱维亚语 latviešu'
           - '马来语 Bahasa Melayu'
+          - '荷兰语 Nederlands'
           - '挪威语 norsk'
           - '波兰语 polski'
           - '葡萄牙语（巴西） Português (Brasil)'
           - '葡萄牙语 Português'
-          - '罗马尼亚语 Română'
           - '俄语 Русский'
           - '斯洛伐克语 Slovenčina'
-          - '斯洛文尼亚语 Slovenščina'
-          - '西班牙语 Español'
+          - '斯洛文尼亚语 slovenščina'
           - '瑞典语 Svenska'
+          - '泰米尔语 தமிழ்'
+          - '泰卢固语 తెలుగు'
           - '泰语 ไทย'
           - '土耳其语 Türkçe'
-          - '乌克兰语 Українська'
+          - '乌克兰语 українська'
           - '越南语 Tiếng Việt'
-
+          
 jobs:
   download-apple-trailers:
     runs-on: windows-latest
@@ -156,7 +157,7 @@ jobs:
           Write-Host "`e[32mExtracted Movie Title: $movieTitle`e[0m"
           echo "env:MOVIE_TITLE=$movieTitle" >> $env:GITHUB_ENV
         } else {
-          Write-Host "No movie title found. Task cancelled."
+          Write-Host "`e[31mNo movie title found. Task cancelled.`e[0m"
           exit 1
         }
 
@@ -199,7 +200,7 @@ jobs:
         }
 
         if (-not $bestStream -and $resolution -eq '4K') {
-          Write-Host "No 4K stream found, falling back to 1080p."
+          Write-Host "`e[31mNo 4K stream found, falling back to 1080p.`e[0m"
           $minWidth = 1900
           $maxWidth = 2000
           $maxBandwidth = 0
@@ -227,11 +228,11 @@ jobs:
         }
 
         if (-not $bestStream) {
-          Write-Host "No suitable stream found. Task cancelled."
+          Write-Host "`e[31mNo suitable stream found. Task cancelled.`e[0m"
           exit 1
         }
 
-        Write-Host "Best Stream URL: $bestStream"
+        Write-Host "`e[32mBest Stream URL: $bestStream`e[0m"
         echo "env:BEST_STREAM_URL=$bestStream" >> $env:GITHUB_ENV
         echo "env:FINAL_RESOLUTION=$finalResolution" >> $env:GITHUB_ENV
 
@@ -286,11 +287,11 @@ jobs:
             $bestAudioUrl = $audioMatches[0].Groups[1].Value
           }
           if ($bestAudioUrl) {
-            Write-Host "Found the best audio URL: $bestAudioUrl"
+            Write-Host "`e[32mFound the best audio URL: $bestAudioUrl`e[0m"
             .\ffmpeg.exe -i $bestAudioUrl -c copy audio.m4a
             echo "env:AUDIO_FILE=audio.m4a" >> $env:GITHUB_ENV
           } else {
-            Write-Host "No suitable audio stream found. Task cancelled."
+            Write-Host "`e[31mNo suitable audio stream found. Task cancelled.`e[0m"
             exit 1
           }
         } elseif ($finalResolution -eq '4K') {
@@ -316,12 +317,12 @@ jobs:
             }
           }
           if ($bestAudioUrl) {
-            Write-Host "Found the best audio URL: $bestAudioUrl"
+            Write-Host "`e[32mFound the best audio URL: $bestAudioUrl`e[0m"
             .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3 *>&1 | Tee-Object -FilePath ffmpeg_audio_download.log
             echo "env:AUDIO_FILE=audio.ec3" >> $env:GITHUB_ENV
             echo "env:FFMPEG_AUDIO_LOG=ffmpeg_audio_download.log" >> $env:GITHUB_ENV
           } else {
-            Write-Host "No suitable audio stream found. Task cancelled."
+            Write-Host "`e[31mNo suitable audio stream found. Task cancelled.`e[0m"
             exit 1
           }
         }
@@ -334,41 +335,42 @@ jobs:
           "中文繁體" = "cmn-Hant"
           "粤语 廣東話" = "yue-Hant"
           "英语 English" = "en"
-          "日语 日本語" = "ja"
-          "韩语 한국어" = "ko"
           "阿拉伯语 العربية" = "ar"
           "保加利亚语 български" = "bg"
-          "克罗地亚语 Hrvatski" = "hr"
           "捷克语 Čeština" = "cs"
           "丹麦语 dansk" = "da"
-          "荷兰语 Nederlands" = "nl"
+          "德语 Deutsch" = "de"
+          "希腊语 Ελληνικά" = "el"
+          "西班牙语（拉丁美洲） Español (Latinoamérica)" = "es-419"
+          "西班牙语（西班牙） Español (España)" = "es-ES"
           "爱沙尼亚语 eesti" = "et"
           "芬兰语 Suomi" = "fi"
           "法语（加拿大） Français (Canada)" = "fr-CA"
           "法语（法国） Français (France)" = "fr-FR"
-          "德语 Deutsch" = "de"
-          "希腊语 Ελληνικά" = "el"
           "希伯来语 עברית" = "he"
           "印地语 हिन्दी" = "hi"
           "匈牙利语 magyar" = "hu"
-          "印度尼西亚语 Bahasa Indonesia" = "id"
+          "印尼语 Bahasa Indonesia" = "id"
           "意大利语 Italiano" = "it"
-          "拉脱维亚语 Latviešu" = "lv"
-          "立陶宛语 Lietuvių" = "lt"
+          "日语 日本語" = "ja"
+          "韩语 한국어" = "ko"
+          "立陶宛语 lietuvių" = "lt"
+          "拉脱维亚语 latviešu" = "lv"
           "马来语 Bahasa Melayu" = "ms"
+          "荷兰语 Nederlands" = "nl"
           "挪威语 norsk" = "no"
           "波兰语 polski" = "pl"
           "葡萄牙语（巴西） Português (Brasil)" = "pt-BR"
           "葡萄牙语 Português" = "pt"
-          "罗马尼亚语 Română" = "ro"
           "俄语 Русский" = "ru"
           "斯洛伐克语 Slovenčina" = "sk"
-          "斯洛文尼亚语 Slovenščina" = "sl"
-          "西班牙语 Español" = "es"
+          "斯洛文尼亚语 slovenščina" = "sl"
           "瑞典语 Svenska" = "sv"
+          "泰米尔语 தமிழ்" = "ta"
+          "泰卢固语 తెలుగు" = "te"
           "泰语 ไทย" = "th"
           "土耳其语 Türkçe" = "tr"
-          "乌克兰语 Українська" = "uk"
+          "乌克兰语 українська" = "uk"
           "越南语 Tiếng Việt" = "vi"
         }
         
@@ -391,12 +393,12 @@ jobs:
         }
 
         if ($bestSubtitleUrl) {
-          Write-Host "Found the best subtitle URL: $bestSubtitleUrl"
+          Write-Host "`e[32mFound the best subtitle URL: $bestSubtitleUrl`e[0m"
           .\ffmpeg.exe -i $bestSubtitleUrl -c copy subtitles.vtt
           .\ffmpeg.exe -i subtitles.vtt subtitles.srt
           Remove-Item subtitles.vtt
-          Write-Host "字幕下载并转换完成，输出文件：subtitles.srt"
+          Write-Host "`e[32m字幕下载并转换完成，输出文件：subtitles.srt`e[0m"
           echo "env:SUBTITLE_FILE=subtitles.srt" >> $env:GITHUB_ENV
         } else {
-          Write-Host "No suitable subtitle stream found. Skipping subtitles."
+          Write-Host "`e[31mNo suitable subtitle stream found. Skipping subtitles.`e[0m"
         }
