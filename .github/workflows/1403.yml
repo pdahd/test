@@ -241,7 +241,7 @@ jobs:
         Write-Host "`e[32mOutput File Name: ${videoFileName}.mov`e[0m"
         .\ffmpeg.exe -i "$bestStream" -c copy "${videoFileName}.mov" *>&1 | Tee-Object -FilePath ffmpeg_download.log
         Write-Host "`e[32mDownloaded video file: ${videoFileName}.mov`e[0m"
-        echo "$VIDEO_FILE=${videoFileName}.mov" >> $env:GITHUB_ENV
+        echo "VIDEO_FILE=${videoFileName}.mov" >> $env:GITHUB_ENV
         echo "FFMPEG_LOG=ffmpeg_download.log" >> $env:GITHUB_ENV
 
         # 调试：打印用户选择的语言值
@@ -289,7 +289,7 @@ jobs:
           if ($bestAudioUrl) {
             Write-Host "`e[32mFound the best audio URL: $bestAudioUrl`e[0m"
             .\ffmpeg.exe -i $bestAudioUrl -c copy audio.m4a
-            echo "$AUDIO_FILE=audio.m4a" >> $env:GITHUB_ENV
+            echo "AUDIO_FILE=audio.m4a" >> $env:GITHUB_ENV
             # 调试：打印下载后的音频文件
             Write-Host "`e[32mDownloaded Audio File: audio.m4a`e[0m"
           } else {
@@ -321,7 +321,7 @@ jobs:
           if ($bestAudioUrl) {
             Write-Host "`e[32mFound the best audio URL: $bestAudioUrl`e[0m"
             .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3 *>&1 | Tee-Object -FilePath ffmpeg_audio_download.log
-            echo "$AUDIO_FILE=audio.ec3" >> $env:GITHUB_ENV
+            echo "AUDIO_FILE=audio.ec3" >> $env:GITHUB_ENV
             echo "FFMPEG_AUDIO_LOG=ffmpeg_audio_download.log" >> $env:GITHUB_ENV
             # 调试：打印下载后的音频文件
             Write-Host "`e[32mDownloaded Audio File: audio.ec3`e[0m"
@@ -410,14 +410,14 @@ jobs:
         # 视频、音频和字幕混流封装
         if (Test-Path "subtitles.srt") {
           Write-Host "封装视频、音频和字幕至 MKV"
-          .\ffmpeg.exe -i $VIDEO_FILE" -i $AUDIO_FILE -i subtitles.srt -c copy ${videoFileName}.mkv
+          .\ffmpeg.exe -i ${{ env.VIDEO_FILE }}" -i ${{ env.AUDIO_FILE }} -i subtitles.srt -c copy ${videoFileName}.mkv
           Write-Host "`e[32m混流封装完成，输出文件： ${videoFileName}.mkv`e[0m"
-          $output_file = "${videoFileName}.mkv"
+          echo "OUTPUT_FILE=${videoFileName}.mkv" >> $env:GITHUB_ENV
         } else {
           Write-Host "封装视频和音频至 MOV（无字幕）"
-          .\ffmpeg.exe -i $VIDEO_FILE -i $AUDIO_FILE -c copy -y ${videoFileName}.mov
+          .\ffmpeg.exe -i ${{ env.VIDEO_FILE }} -i ${{ env.AUDIO_FILE }} -c copy -y ${videoFileName}.mov
           Write-Host "`e[32m混流封装完成，输出文件: ${videoFileName}.mov`e[0m"
-          $output_file = "${videoFileName}.mov"
+          echo "OUTPUT_FILE=${videoFileName}.mov" >> $env:GITHUB_ENV
         }
 
-          echo "OUTPUT_FILE=$output_file" >> $env:GITHUB_ENV
+         
