@@ -428,6 +428,6 @@ jobs:
     - name: Subsequent Step
       run: |
         # 调试：打印环境变量中的输出文件路径
-        Write-Host "`e[32mOutput File Path: $OUTPUT_FILE`e[0m"
+        Write-Host "`e[32mOutput File Path: OUTPUT_FILE`e[0m"
     
    
