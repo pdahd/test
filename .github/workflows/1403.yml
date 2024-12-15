@@ -290,6 +290,8 @@ jobs:
             Write-Host "`e[32mFound the best audio URL: $bestAudioUrl`e[0m"
             .\ffmpeg.exe -i $bestAudioUrl -c copy audio.m4a
             echo "env:AUDIO_FILE=audio.m4a" >> $env:GITHUB_ENV
+            # 调试：打印下载后的音频文件
+            Write-Host "`e[32mDownloaded Audio File: audio.m4a`e[0m"
           } else {
             Write-Host "`e[31mNo suitable audio stream found. Task cancelled.`e[0m"
             exit 1
@@ -321,6 +323,8 @@ jobs:
             .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3 *>&1 | Tee-Object -FilePath ffmpeg_audio_download.log
             echo "env:AUDIO_FILE=audio.ec3" >> $env:GITHUB_ENV
             echo "env:FFMPEG_AUDIO_LOG=ffmpeg_audio_download.log" >> $env:GITHUB_ENV
+            # 调试：打印下载后的音频文件
+            Write-Host "`e[32mDownloaded Audio File: audio.ec3`e[0m"
           } else {
             Write-Host "`e[31mNo suitable audio stream found. Task cancelled.`e[0m"
             exit 1
