@@ -238,10 +238,10 @@ jobs:
 
         # 文件命名并下载
         $videoFileName = "$movieTitle-$finalResolution-AppleTrailer"
-        Write-Host "`e[32mOutput File Name: apple.mov`e[0m"
-        .\ffmpeg.exe -i "$bestStream" -c copy "apple.mov" *>&1 | Tee-Object -FilePath ffmpeg_download.log
-        Write-Host "`e[32mDownloaded video file: apple.mov`e[0m"
-        echo "VIDEO_FILE=apple.mov" >> $env:GITHUB_ENV
+        Write-Host "`e[32mOutput File Name: ${videoFileName}.mov`e[0m"
+        .\ffmpeg.exe -i "$bestStream" -c copy "${videoFileName}.mov" *>&1 | Tee-Object -FilePath ffmpeg_download.log
+        Write-Host "`e[32mDownloaded video file: ${videoFileName}.mov`e[0m"
+        echo "VIDEO_FILE=${videoFileName}.mov" >> $env:GITHUB_ENV
         echo "FFMPEG_LOG=ffmpeg_download.log" >> $env:GITHUB_ENV
 
         # 调试：打印用户选择的语言值
@@ -416,12 +416,12 @@ jobs:
           
         if (Test-Path "subtitles.srt") {
           Write-Host "封装视频、音频和字幕至 MKV"
-          .\ffmpeg.exe -i apple.mov -i $audioFile -i subtitles.srt -c copy "${videoFileName}.mkv"
+          .\ffmpeg.exe -i "${videoFileName}.mov" -i $audioFile -i subtitles.srt -c copy "${videoFileName}.mkv"
           Write-Host "`e[32m混流封装完成，输出文件： ${videoFileName}.mkv`e[0m"
           echo "OUTPUT_FILE=${videoFileName}.mkv" >> $env:GITHUB_ENV
         } else {
           Write-Host "封装视频和音频至 MOV（无字幕）"
-          .\ffmpeg.exe -i apple.mov -i $audioFile -c copy "${videoFileName}.mov"
+          .\ffmpeg.exe -i "${videoFileName}.mov" -i $audioFile -c copy "${videoFileName}.mov"
           Write-Host "`e[32m混流封装完成，输出文件: ${videoFileName}.mov`e[0m"
           echo "OUTPUT_FILE=${videoFileName}.mov" >> $env:GITHUB_ENV
         }
