@@ -417,5 +417,5 @@ jobs:
           Write-Host "封装视频和音频至 MOV（无字幕）"
           .\ffmpeg.exe -i $VIDEO_FILE -i $AUDIO_FILE -c copy -y ${videoFileName}.mov
           Write-Host "`e[32m混流封装完成，输出文件: ${videoFileName}.mov`e[0m"
-          echo "OUTPUT_FILE=${videoFileName}.mov" >> $env:GITHUB_ENV
+          echo "OUTPUT_FILE" = "${videoFileName}.mov" >> $env:GITHUB_ENV
         }
