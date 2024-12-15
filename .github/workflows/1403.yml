@@ -155,7 +155,7 @@ jobs:
         if ($titleMatch.Success) {
           $movieTitle = $titleMatch.Groups[1].Value
           Write-Host "`e[32mExtracted Movie Title: $movieTitle`e[0m"
-          echo "env:MOVIE_TITLE=$movieTitle" >> $env:GITHUB_ENV
+          echo "MOVIE_TITLE=$movieTitle" >> $env:GITHUB_ENV
         } else {
           Write-Host "`e[31mNo movie title found. Task cancelled.`e[0m"
           exit 1
@@ -233,16 +233,15 @@ jobs:
         }
 
         Write-Host "`e[32mBest Stream URL: $bestStream`e[0m"
-        echo "env:BEST_STREAM_URL=$bestStream" >> $env:GITHUB_ENV
-        echo "env:FINAL_RESOLUTION=$finalResolution" >> $env:GITHUB_ENV
+        echo "BEST_STREAM_URL=$bestStream" >> $env:GITHUB_ENV
+        echo "FINAL_RESOLUTION=$finalResolution" >> $env:GITHUB_ENV
 
         # 文件命名并下载
-        $outputFileName = "$movieTitle-$finalResolution-AppleTrailer.mov"
-        Write-Host "`e[32mOutput File Name: $outputFileName`e[0m"
-        .\ffmpeg.exe -i "$bestStream" -c copy "$outputFileName"
-        Write-Host "`e[32mDownloaded video file: $outputFileName`e[0m"
-
-        echo "env:OUTPUT_FILE=$outputFileName" >> $env:GITHUB_ENV
+        $videoFileName = "$movieTitle-$finalResolution-AppleTrailer"
+        Write-Host "`e[32mOutput File Name: ${videoFileName}.mov`e[0m"
+        .\ffmpeg.exe -i "$bestStream" -c copy "${videoFileName}.mov"
+        Write-Host "`e[32mDownloaded video file: ${videoFileName}.mov`e[0m"
+        echo "VIDEO_FILE=${videoFileName}.mov" >> $env:GITHUB_ENV
 
         # 调试：打印用户选择的语言值
         Write-Host "`e[32mUser Selected Audio Language: $audioLanguage`e[0m"
@@ -289,7 +288,7 @@ jobs:
           if ($bestAudioUrl) {
             Write-Host "`e[32mFound the best audio URL: $bestAudioUrl`e[0m"
             .\ffmpeg.exe -i $bestAudioUrl -c copy audio.m4a
-            echo "env:AUDIO_FILE=audio.m4a" >> $env:GITHUB_ENV
+            echo "AUDIO_FILE=audio.m4a" >> $env:GITHUB_ENV
             # 调试：打印下载后的音频文件
             Write-Host "`e[32mDownloaded Audio File: audio.m4a`e[0m"
           } else {
@@ -321,8 +320,8 @@ jobs:
           if ($bestAudioUrl) {
             Write-Host "`e[32mFound the best audio URL: $bestAudioUrl`e[0m"
             .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3 *>&1 | Tee-Object -FilePath ffmpeg_audio_download.log
-            echo "env:AUDIO_FILE=audio.ec3" >> $env:GITHUB_ENV
-            echo "env:FFMPEG_AUDIO_LOG=ffmpeg_audio_download.log" >> $env:GITHUB_ENV
+            echo "AUDIO_FILE=audio.ec3" >> $env:GITHUB_ENV
+            echo "FFMPEG_AUDIO_LOG=ffmpeg_audio_download.log" >> $env:GITHUB_ENV
             # 调试：打印下载后的音频文件
             Write-Host "`e[32mDownloaded Audio File: audio.ec3`e[0m"
           } else {
@@ -402,7 +401,7 @@ jobs:
           .\ffmpeg.exe -i subtitles.vtt subtitles.srt
           Remove-Item subtitles.vtt
           Write-Host "`e[32m字幕下载并转换完成，输出文件：subtitles.srt`e[0m"
-          echo "env:SUBTITLE_FILE=subtitles.srt" >> $env:GITHUB_ENV
+          echo "SUBTITLE_FILE=subtitles.srt" >> $env:GITHUB_ENV
         } else {
           Write-Host "`e[31mNo suitable subtitle stream found. Skipping subtitles.`e[0m"
         }
