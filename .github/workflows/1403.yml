@@ -425,7 +425,7 @@ jobs:
         }
 
         # 显示合并后的日志文件内容
-          Write-Host "`e[32mFFmpeg Log Content:`e[0m"
+          Write-Host "`e[32mFFMPEG_LOG Content:`e[0m"
           Get-Content -Path ffmpeg_download.log | ForEach-Object { Write-Host "`e[35m$_`e[0m" }
 
     - name: Subsequent Step
