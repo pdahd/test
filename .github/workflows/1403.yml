@@ -4,17 +4,30 @@ on:
   workflow_dispatch:
     inputs:
       trailer_url:
-        description: '输入 Apple 电影预告片链接'
+        description: |
+          输入 Apple 电影预告片链接
+
+          请访问 Apple 电影电视预告片官方网站：[https://tv.apple.com/](https://tv.apple.com/)，
+          打开任意影片封面或搜索影片，复制浏览器地址栏中的链接，并粘贴到此输入框。
         required: true
       resolution:
-        description: '选择预告片分辨率'
+        description: |
+          选择预告片分辨率
+
+          此选项用于选择预告片的分辨率。默认分辨率为 1080p。
+          若选择 4K 分辨率，但 Apple 未提供该预告片的 4K 版本，将自动下载 1080p 版本。
+          若 Apple 提供的预告片分辨率低于 1080p，下载任务将自动取消。
+          所有 4K 版本均为杜比视界 (Dolby Vision) + 杜比全景声 (Dolby Atmos) 5.1 声道高质量版本。
         required: false
         type: choice
         options:
           - '1080p'
           - '4K'
       audio_language:
-        description: '选择音频语言'
+        description: |
+          选择音频语言
+
+          此选项用于选择预告片的音频语言。若 Apple 未提供英语以外的其他语言版本，将使用默认的英语音频。
         required: false
         type: choice
         options:
@@ -29,7 +42,10 @@ on:
           - '🇧🇷 巴西葡萄牙语'
           - '🇷🇺 俄语'
       subtitle_language:
-        description: '选择字幕语言'
+        description: |
+          选择封装字幕语言
+
+          此选项用于选择将要封装到预告片中的字幕语言。若 Apple 未提供任何字幕，下载的预告片将不包含字幕。
         required: false
         type: choice
         options:
