@@ -430,8 +430,12 @@ jobs:
         # 调试：打印环境变量中的输出文件路径
         Write-Host "`e[32mOutput File Path: $env:OUTPUT_FILE`e[0m"
     
-        # 使用 ffmpeg 命令处理输出文件
-        .\ffmpeg.exe -i "$env:OUTPUT_FILE" 
+        # 使用 ffmpeg 命令查看文件信息
+        .\ffmpeg.exe -i "$env:OUTPUT_FILE" -f null - 2>&1 | Out-File -FilePath ffmpeg_info.log
+    
+        # 打印保存的日志文件内容
+        Write-Host "`e[32mFFmpeg Log Content:`e[0m"
+        Get-Content -Path ffmpeg_info.log | ForEach-Object { Write-Host "`e[36m$_`e[0m" }
 
     
    
