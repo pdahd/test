@@ -405,7 +405,7 @@ jobs:
         }
 
         # 视频、音频和字幕混流封装并命名
-          $videoFileName = "$movieTitle-$finalResolution-AppleTrailer"
+        $videoFileName = "$movieTitle-$finalResolution-AppleTrailer"
         if ($finalResolution -eq "1080p") {
           $audioFile = "audio.m4a"
         } elseif ($finalResolution -eq "4K") {
@@ -461,10 +461,15 @@ jobs:
         }
 
         # 提取改名后的名称（不包括扩展名）
-        $renamedFileBase = [System.IO.Path]::GetFileNameWithoutExtension($newFileName)
+        if ($newFileName) {
+          $renamedFileBase = [System.IO.Path]::GetFileNameWithoutExtension($newFileName)
+        } else {
+          # 未改名时，使用原封装输出文件名作为基准
+          $renamedFileBase = [System.IO.Path]::GetFileNameWithoutExtension($outputFileName)
+        }
         Write-Host "`e[32mExtracted base name for renamed file: $renamedFileBase`e[0m"
         echo "RENAMED_FILE_BASE=$renamedFileBase" >> $env:GITHUB_ENV
-
+    
     - name: Upload FFmpeg outputs
       uses: actions/upload-artifact@v4
       with:
