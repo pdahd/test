@@ -431,7 +431,7 @@ jobs:
         Write-Host "`e[32mOutput File Path: $env:OUTPUT_FILE`e[0m"
     
         # 使用 ffmpeg 命令处理输出文件
-        .\ffmpeg.exe -i "$env:OUTPUT_FILE" -c copy output_processed.mp4
+        .\ffmpeg.exe -i "$env:OUTPUT_FILE" 
 
     
    
