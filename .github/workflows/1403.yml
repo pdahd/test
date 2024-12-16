@@ -424,20 +424,16 @@ jobs:
           echo "OUTPUT_FILE=${videoFileName}.mov" >> $env:GITHUB_ENV
         }
 
-        # 显示合并后的日志文件内容
-          Write-Host "`e[32mFFMPEG_LOG Content:`e[0m"
-          Get-Content -Path ffmpeg_download.log | ForEach-Object { Write-Host "`e[35m$_`e[0m" }
-
         # 第二次改名逻辑
-          $outputFilePath = Get-Item "${videoFileName}.*"
-          $outputFileName = $outputFilePath.Name
-          $outputFileExtension = $outputFilePath.Extension
+        $outputFilePath = Get-Item "${videoFileName}.*"
+        $outputFileName = $outputFilePath.Name
+        $outputFileExtension = $outputFilePath.Extension
 
         # 检查是否需要改名
-          if ($outputFileName -like "*4K*") {
-            Write-Host "`e[33mFilename contains '4K'. Checking technical tags...`e[0m"
+        if ($outputFileName -like "*4K*") {
+          Write-Host "`e[33mFilename contains '4K'. Checking technical tags...`e[0m"
 
-        # 检查日志中是否包含技术性标签
+          # 检查日志中是否包含技术性标签
           $logContent = Get-Content -Path ffmpeg_download.log -Raw
           $hasDolbyVision = $logContent -match "DOVI configuration"
           $hasDolbyAtmos = $logContent -match "Dolby Atmos"
@@ -464,17 +460,17 @@ jobs:
           echo "RENAMED_FILE=$outputFileName" >> $env:GITHUB_ENV
         }
 
-    - name: Subsequent Step
-      run: |
-        # 调试：打印环境变量中的输出文件路径
-        Write-Host "`e[32mOutput File Path: $env:OUTPUT_FILE`e[0m"
-    
-        # 使用 ffmpeg 命令查看文件信息
-        .\ffmpeg.exe -i "$env:OUTPUT_FILE" -f null - 2>&1 | Out-File -FilePath ffmpeg_info.log
-    
-        # 打印保存的日志文件内容
-        Write-Host "`e[32mFFmpeg Log Content:`e[0m"
-        Get-Content -Path ffmpeg_info.log | ForEach-Object { Write-Host "`e[36m$_`e[0m" }
+        # 提取改名后的名称（不包括扩展名）
+        $renamedFileBase = [System.IO.Path]::GetFileNameWithoutExtension($newFileName)
+        Write-Host "`e[32mExtracted base name for renamed file: $renamedFileBase`e[0m"
+        echo "RENAMED_FILE_BASE=$renamedFileBase" >> $env:GITHUB_ENV
+
+    - name: Upload FFmpeg outputs
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.RENAMED_FILE_BASE }}
+        path: |
+          ${{ env.RENAMED_FILE }}
 
     
    
