@@ -237,10 +237,9 @@ jobs:
         echo "FINAL_RESOLUTION=$finalResolution" >> $env:GITHUB_ENV
 
         # 下载视频并写入环境变量
-        .\ffmpeg.exe -i "$bestStream" -c copy "AppleTrailer.mov" *>&1 | Tee-Object -FilePath ffmpeg_download.log
+        .\ffmpeg.exe -i "$bestStream" -c copy "AppleTrailer.mov" *>&1 | Tee-Object -FilePath ffmpeg_download.log -Append
         Write-Host "`e[32mDownloaded video file: AppleTrailer.mov`e[0m"
         echo "VIDEO_FILE=AppleTrailer.mov" >> $env:GITHUB_ENV
-        echo "FFMPEG_LOG=ffmpeg_download.log" >> $env:GITHUB_ENV
 
         # 调试：打印用户选择的语言值
         Write-Host "`e[32mUser Selected Audio Language: $audioLanguage`e[0m"
@@ -318,9 +317,9 @@ jobs:
           }
           if ($bestAudioUrl) {
             Write-Host "`e[32mFound the best audio URL: $bestAudioUrl`e[0m"
-            .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3 *>&1 | Tee-Object -FilePath ffmpeg_audio_download.log
+            .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3 *>&1 | Tee-Object -FilePath ffmpeg_download.log -Append
             echo "AUDIO_FILE=audio.ec3" >> $env:GITHUB_ENV
-            echo "FFMPEG_AUDIO_LOG=ffmpeg_audio_download.log" >> $env:GITHUB_ENV
+            echo "FFMPEG_LOG=ffmpeg_download.log" >> $env:GITHUB_ENV
             # 调试：打印下载后的音频文件
             Write-Host "`e[32mDownloaded Audio File: audio.ec3`e[0m"
           } else {
@@ -424,6 +423,10 @@ jobs:
           Write-Host "`e[32m混流封装完成，输出文件: ${videoFileName}.mov`e[0m"
           echo "OUTPUT_FILE=${videoFileName}.mov" >> $env:GITHUB_ENV
         }
+
+        # 显示合并后的日志文件内容
+          Write-Host "`e[32mFFmpeg Log Content:`e[0m"
+          Get-Content -Path ffmpeg_download.log | ForEach-Object { Write-Host "`e[35m$_`e[0m" }
 
     - name: Subsequent Step
       run: |
