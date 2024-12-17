@@ -6,14 +6,12 @@ on:
       trailer_url:
         description: |
           【请输入 Apple 电影预告片链接】
-          要获取某个预告片链接，请访问 Apple 电影预告片官网：https://tv.apple.com/
-          打开任意影片封面或搜索影片，复制浏览器地址栏中的链接，并粘贴到此输入框。
+          请访问 Apple 电影预告片官网：https://tv.apple.com/，选择任意影片或搜索影片，然后复制浏览器地址栏中的链接，并将其粘贴到此输入框中。
         required: true
       resolution:
         description: |
-          【选择预告片分辨率】
-          4K 预告片均为杜比视界 (Dolby Vision) + 杜比全景声 (Dolby Atmos) 5.1 声道高质量版本。默认分辨率为1080p，若选择 4K 分辨率，但 Apple 未提供该预告片的 4K 版本，将自动下载 1080p 版本。
-          若 Apple 提供的预告片分辨率低于 1080p，下载任务将自动取消。
+          【选择分辨率】
+          此选项有两种分辨率可选。如果 Apple 未提供 4K 分辨率，将自动使用 1080p 分辨率；如果 Apple 提供的最高分辨率低于 1080p，下载任务将被取消。4K 预告片为杜比视界 (Dolby Vision) 和杜比全景声 (Dolby Atmos) 5.1 声道高品质版本。
         required: false
         type: choice
         options:
@@ -22,7 +20,7 @@ on:
       audio_language:
         description: |
           【选择音频语言】
-          大部分热门影片含有10个国家的音频语言，若 Apple 未提供英语以外的其他语言，将使用默认的英语音频。
+          这里有 10 种音频语言可选。如果 Apple 未提供所选语言，将使用默认的英语音频。
         required: false
         type: choice
         options:
@@ -38,9 +36,8 @@ on:
           - '🇷🇺 俄语'
       subtitle_language:
         description: |
-          【选择封装字幕语言】
-          大部分热门影片均含有41种国家地区的语言字幕，若 Apple 未提供任何字幕，下载的预告片将不包含字幕。
-          安卓等移动设备播放含有内封装字幕的预告片时，建议播放器开启软解播放。
+          【选择字幕语言】
+          这里有 41 种内嵌软字幕语言可选。当 Apple 未提供字幕时，下载的预告片将不包含字幕。字幕均封装至视频中，播放时可选择开启或关闭字幕显示。建议使用 MX Player 播放器并启用软解码播放。
         required: false
         type: choice
         options:
