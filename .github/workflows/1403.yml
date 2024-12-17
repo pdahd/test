@@ -84,7 +84,7 @@ on:
           - '🇻🇳 越南语 Tiếng Việt'
       download_info: 
         description: |
-          您下载的 Apple 电影预告片都未经任何重新编码或压缩处理，我们直接从 Apple 的原始流中拷贝数据，因此保证与 Apple 官方提供的版本完全相同的质量，没有任何损失。
+          您下载的电影预告片均未经任何重新编码或压缩，直接从 Apple 服务器拷贝原始数据，确保没有任何质量损失。
         required: false 
         type: string 
       
