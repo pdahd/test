@@ -84,7 +84,7 @@ on:
           - '🇻🇳 越南语 Tiếng Việt'
       download_info: 
         description: |
-          您下载的电影预告片均未经任何重新编码或压缩，直接从 Apple 服务器拷贝原始数据，确保没有任何质量损失。
+          您下载的电影预告片均未经任何重新编码或压缩，直接从 Apple 服务器拷贝原始数据，因此没有任何质量损失。下载完成后，您可以在 GitHub Actions 工作流运行的“Artifacts”选项卡中找到下载的预告片文件。
         required: false 
         type: string 
       
