@@ -11,7 +11,7 @@ on:
       resolution:
         description: |
           【选择分辨率】
-          4K 预告片为杜比视界 (Dolby Vision) 和杜比全景声 (Dolby Atmos) 5.1 声道高品质版本。如果 Apple 未提供 4K 分辨率，将默认为 1080p 分辨率；如果提供的最高分辨率低于 1080p，下载任务将被取消。
+          4K 预告片提供杜比视界 (Dolby Vision) 和杜比全景声 (Dolby Atmos)。如果 Apple 未提供 4K 分辨率，将默认为 1080p 分辨率；如果提供的最高分辨率低于 1080p，下载任务将被取消。
         required: false
         type: choice
         options:
