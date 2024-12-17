@@ -19,8 +19,8 @@ on:
           - '4K'
       audio_language:
         description: |
-          【选择音频语言】
-          这里有 10 种音频语言可选。如果 Apple 未提供所选语言，将使用默认的英语音频。
+          【选择声音语言】
+          这里有 10 种声音语言可选。如果 Apple 未提供所选语言，将默认为英语。
         required: false
         type: choice
         options:
