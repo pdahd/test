@@ -6,12 +6,12 @@ on:
       trailer_url:
         description: |
           【输入 Apple 电影预告片链接】
-          请访问 Apple 电影电视官网（https://tv.apple.com/），选择或搜索影片，复制浏览器地址栏中的链接并粘贴到此处。
+          请访问 Apple 电影电视官网（https://tv.apple.com/），选择或搜索影片，复制浏览器地址栏中的链接并粘贴到此处。👇🏻
         required: true
       resolution:
         description: |
           【选择分辨率】
-          若 Apple 未提供 4K 分辨率，将默认为 1080p；若提供的最高分辨率低于 1080p，下载任务将被取消。4K 预告片提供杜比视界 (Dolby Vision) 和杜比全景声 (Dolby Atmos)。
+          若 Apple 未提供 4K 分辨率，将默认为 1080p；若提供的最高分辨率低于 1080p，下载任务将被取消。4K 预告片提供杜比视界 (Dolby Vision) 和杜比全景声 (Dolby Atmos)。👇🏻
         required: false
         type: choice
         options:
@@ -20,7 +20,7 @@ on:
       audio_language:
         description: |
           【选择声音语言】
-          提供 10 种声音语言可供选择；若 Apple 未提供所选语言，则默认为英语。
+          提供 10 种声音语言可供选择；若 Apple 未提供所选语言，则默认为英语。👇🏻
         required: false
         type: choice
         options:
@@ -37,7 +37,7 @@ on:
       subtitle_language:
         description: |
           【选择字幕语言】
-          提供 41 种字幕语言。字幕默认封装在视频中，可在播放时选择开启或关闭。安卓设备建议使用 MX Player 并启用软解码播放。若 Apple 未提供字幕，则下载的预告片将不包含字幕。
+          提供 41 种字幕语言。字幕默认封装在视频中，可在播放时选择开启或关闭。安卓设备建议使用 MX Player 并启用软解码播放。若 Apple 未提供字幕，则下载的预告片将不包含字幕。👇🏻
         required: false
         type: choice
         options:
@@ -84,7 +84,7 @@ on:
           - '🇻🇳 越南语 Tiếng Việt'
       download_info: 
         description: |
-          🤔 您下载的电影预告片均未经任何重新编码或压缩，直接从 Apple 服务器拷贝原始流数据，没有任何质量损失。下载完成后，您可以在 GitHub Actions 工作流运行的“Artifacts”选项卡中找到下载的预告片文件。
+          🍏 下载的预告片均未经任何重新编码或压缩，直接从 Apple 服务器拷贝原始流数据，没有任何质量损失。下载完成后，您可以在 GitHub Actions 工作流运行的“Artifacts”选项卡中找到下载的预告片文件。
         required: false 
         type: string 
       
