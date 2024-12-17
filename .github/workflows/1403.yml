@@ -5,13 +5,13 @@ on:
     inputs:
       trailer_url:
         description: |
-          【请输入 Apple 电影预告片链接】
+          【输入 Apple 电影预告片链接】
           请访问 Apple 电影预告片官网：https://tv.apple.com/，选择任意影片或搜索影片，然后复制浏览器地址栏中的链接，并将其粘贴到此输入框中。
         required: true
       resolution:
         description: |
           【选择分辨率】
-          此选项有两种分辨率可选。如果 Apple 未提供 4K 分辨率，将自动使用 1080p 分辨率；如果 Apple 提供的最高分辨率低于 1080p，下载任务将被取消。4K 预告片为杜比视界 (Dolby Vision) 和杜比全景声 (Dolby Atmos) 5.1 声道高品质版本。
+          如果 Apple 未提供 4K 分辨率，将自动使用 1080p 分辨率；如果 Apple 提供的最高分辨率低于 1080p，下载任务将被取消。4K 预告片为杜比视界 (Dolby Vision) 和杜比全景声 (Dolby Atmos) 5.1 声道高品质版本。
         required: false
         type: choice
         options:
@@ -37,7 +37,7 @@ on:
       subtitle_language:
         description: |
           【选择字幕语言】
-          这里有 41 种内嵌软字幕语言可选。当 Apple 未提供字幕时，下载的预告片将不包含字幕。字幕均封装至视频中，播放时可选择开启或关闭字幕显示。建议使用 MX Player 播放器并启用软解码播放。
+          这里有 41 种内嵌软字幕语言可选。当 Apple 未提供字幕时，下载的预告片将不包含字幕。字幕默认封装至视频中，播放时可选择开启或关闭字幕显示。建议使用 MX Player 播放器并启用软解码播放。
         required: false
         type: choice
         options:
