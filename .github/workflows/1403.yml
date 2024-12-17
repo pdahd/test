@@ -6,7 +6,7 @@ on:
       trailer_url:
         description: |
           【输入 Apple 电影预告片链接】
-          请访问 Apple 电影预告片官网：https://tv.apple.com/，选择任意影片或搜索影片，然后复制浏览器地址栏中的链接，并将其粘贴到此输入框中。
+          请访问 Apple 电影预告片官网（https://tv.apple.com/），选择或搜索影片，复制浏览器地址栏中的链接并粘贴到此处。
         required: true
       resolution:
         description: |
@@ -20,7 +20,7 @@ on:
       audio_language:
         description: |
           【选择声音语言】
-          有 10 种声音语言可选。如果 Apple 未提供所选语言，将默认为英语。
+          提供 10 种声音语言可供选择；若 Apple 未提供所选语言，则默认为英语。
         required: false
         type: choice
         options:
@@ -37,7 +37,7 @@ on:
       subtitle_language:
         description: |
           【选择字幕语言】
-          有 41 种字幕语言可选。字幕默认封装至视频中，播放时可选择开启或关闭字幕显示。安卓设备建议使用 MX Player 播放器并启用软解码播放。如果 Apple 未提供字幕，下载的预告片将不包含字幕。
+          提供 41 种字幕语言。字幕默认封装在视频中，可在播放时选择开启或关闭。安卓设备建议使用 MX Player 并启用软解码播放。若 Apple 未提供字幕，则下载的预告片将不包含字幕。
         required: false
         type: choice
         options:
