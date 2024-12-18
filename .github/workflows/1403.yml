@@ -433,7 +433,7 @@ jobs:
           echo "OUTPUT_FILE=${videoFileName}.mkv" >> $env:GITHUB_ENV
         } else {
           Write-Host "封装视频和音频至 MOV（无字幕）"
-          .\ffmpeg.exe -i AppleTrailer.mov -i $audioFile -c copy "${videoFileName}.mov"
+          .\ffmpeg.exe -i AppleTrailer.mov -i $audioFile -c copy "\"${videoFileName}.mov\""
           Write-Host "`e[32m混流封装完成，输出文件: ${videoFileName}.mov`e[0m"
           echo "OUTPUT_FILE=${videoFileName}.mov" >> $env:GITHUB_ENV
         }
