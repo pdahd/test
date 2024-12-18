@@ -124,18 +124,15 @@ jobs:
           throw "未找到包含 m3u8 的 HTML 硬编码链接！"
         }
 
-        # 提取 Released 关键字的值
-        $releasedRegex = '<dt class="typ-caption">\s*Released\s*</dt>\s*<dd class="product-footer__metadata__section__desc typ-caption clr-secondary-text">\s*(\d{4})\s*</dd>'
-        $releasedMatch = [regex]::Match($sourceCode, $releasedRegex)
-
-        if ($releasedMatch.Success) {
-          $releaseYear = $releasedMatch.Groups[1].Value
-          Write-Host "`e[32mExtracted release year: $releaseYear`e[0m"
-          echo "RELEASE_YEAR=$releaseYear" >> $env:GITHUB_ENV
+        # 提取 Released 年份
+        $releasedYearMatch = $sourceCode | Select-String -Pattern '<dt class="typ-caption">\s*Released\s*</dt>\s*<dd class="product-footer__metadata__section__desc typ-caption clr-secondary-text">\s*(\d{4})\s*</dd>'
+        if ($releasedYearMatch) {
+            $releasedYear = $releasedYearMatch.Matches[0].Groups[1].Value
+            echo "Found Released Year: $releasedYear"
+            echo "RELEASED_YEAR=$releasedYear" >> $env:GITHUB_ENV # 设置环境变量
         } else {
-          Write-Host "`e[33mNo release year found. Defaulting to 'Unknown'.`e[0m"
-          $releaseYear = "Unknown"
-          echo "RELEASE_YEAR=$releaseYear" >> $env:GITHUB_ENV
+            Write-Warning "未找到 Released 年份信息！"
+            echo "RELEASED_YEAR=Unknown" >> $env:GITHUB_ENV # 设置默认值，避免后续步骤出错
         }
         
         echo "Found m3u8 URL: $processedUrl"
@@ -433,7 +430,7 @@ jobs:
         }
 
         # 视频、音频和字幕混流封装并命名
-        $videoFileName = "$movieTitle-${{ env.RELEASE_YEAR }}-$finalResolution-AppleTrailer" -replace "[:?!*]", "-"
+        $videoFileName = "$movieTitle-${{ env.RELEASED_YEAR }}-$finalResolution-AppleTrailer" -replace "[:?!*]", "-"
         if ($finalResolution -eq "1080p") {
           $audioFile = "audio.m4a"
         } elseif ($finalResolution -eq "4K") {
