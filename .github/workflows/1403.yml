@@ -6,7 +6,7 @@ on:
       trailer_url:
         description: |
           【输入 Apple 电影预告片链接】
-          请访问 Apple 电影官网（https://tv.apple.com/），选择或搜索影片，复制浏览器地址栏中的链接并粘贴到此处。下面是一个预告片示例链接： https://tv.apple.com/us/movie/spirited/umc.cmc.3lp7wqowerzdbej98tveildi3
+          请访问 Apple 电影官网（https://tv.apple.com/），选择或搜索影片，复制浏览器地址栏中的链接并粘贴到此处。下面是某个预告片示例链接： https://tv.apple.com/us/movie/spirited/umc.cmc.3lp7wqowerzdbej98tveildi3
         required: true
       resolution:
         description: |
@@ -84,11 +84,11 @@ on:
           - '🇻🇳 越南语 Tiếng Việt'
       download_info: 
         description: |
-          下载说明：
+          🍏下载说明：
         required: false 
         type: choice
         options:
-          - '下载的预告片均未经任何重新编码或压缩，直接从 Apple 服务器拷贝原始流数据，没有任何质量损失。下载完成后，您可以在 GitHub Actions 工作流运行的“Artifacts”选项卡中找到下载的预告片文件。'
+          - '在这里下载的预告片未经任何重新编码或压缩，直接从 Apple 服务器拷贝原始流数据，因此没有任何质量损失。下载完成后，您可以在 GitHub Actions 工作流运行的“Artifacts”选项卡中找到下载的预告片文件。'
         
       
 jobs:
