@@ -125,7 +125,7 @@ jobs:
         }
 
         # 提取 Released 年份
-        $regex = '<dt class="typ-caption">\s*Released\s*</dt>\s*<dd class="typ-caption">\s*(\d{4})\s*</dd>'
+        $regex = '<dt class="typ-caption">\s*Released\s*</dt>\s*<dd class="product-footer__metadata__section__desc[^>]*">\s*(\d{4})\s*</dd>'
         $releasedYearMatch = [regex]::Match($sourceCode, $regex)
 
         if ($releasedYearMatch.Success) {
