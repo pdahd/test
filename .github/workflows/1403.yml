@@ -439,7 +439,7 @@ jobs:
         }
 
         # 视频、音频和字幕混流封装并命名
-        $videoFileName = "$movieTitle-${{ env.RELEASED_YEAR }}-$finalResolution-AppleTrailer" -replace "[:?!*]", "-"
+        $videoFileName = "$movieTitle-${{ env.RELEASED_YEAR }}-$finalResolution-AppleTrailer" -replace "[:?!*]", "&"
         if ($finalResolution -eq "1080p") {
           $audioFile = "audio.m4a"
         } elseif ($finalResolution -eq "4K") {
@@ -460,7 +460,7 @@ jobs:
 
         # 第二次改名逻辑
         $outputFilePath = Get-Item "${videoFileName}.*"
-        $outputFileName = $outputFilePath.Name
+        $outputFileName = $outputFilePath.Name -replace "&", ":"
         $outputFileExtension = $outputFilePath.Extension
 
         # 检查是否需要改名
@@ -476,7 +476,7 @@ jobs:
             Write-Host "`e[32mBoth 'DolbyVision' and 'DolbyAtmos' tags found. Renaming file...`e[0m"
 
             # 构造新的文件名
-            $newFileName = "$movieTitle-$finalResolution-AppleTrailer-DolbyVision-DolbyAtmos$outputFileExtension"
+            $newFileName = "$movieTitle-$finalResolution-AppleTrailer-DolbyVision-DolbyAtmos$outputFileExtension" -replace "&", ":"
             $newFilePath = Join-Path -Path $outputFilePath.DirectoryName -ChildPath $newFileName
 
             # 重命名文件
