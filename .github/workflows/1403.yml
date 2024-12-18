@@ -127,21 +127,27 @@ jobs:
           throw "未找到包含 m3u8 的 HTML 硬编码链接！"
         }
 
-        # 提取 Released 年份
-        # 选项 1：最精确的版本
-        # $regex = '<dt class="typ-caption">\s*Released\s*</dt>\s*<dd class="product-footer__metadata__section__desc typ-caption clr-secondary-text">\s*(\d{4})\s*</dd>'
+        # 提取 Released 或 Coming Soon 年份
+        $releasedRegex = '<dt class="typ-caption">\s*Released\s*</dt>\s*<dd class="typ-caption">\s*(\d{4})\s*</dd>' 
+        $comingSoonRegex = '<dt class="typ-caption">\s*Coming Soon\s*</dt>\s*<dd class="typ-caption">\s*(\d{4})\s*</dd>' 
 
-        # 选项 2：部分类名匹配版本 (更灵活)
-        $regex = '<dt class="typ-caption">\s*Released\s*</dt>\s*<dd class="product-footer__metadata__section__desc[^>]*">\s*(\d{4})\s*</dd>'
-        $releasedYearMatch = [regex]::Match($sourceCode, $regex)
+        $releasedYearMatch = [regex]::Match($sourceCode, $releasedRegex)
 
         if ($releasedYearMatch.Success) {
             $releasedYear = $releasedYearMatch.Groups[1].Value
             echo "Found Released Year: $releasedYear"
             echo "RELEASED_YEAR=$releasedYear" >> $env:GITHUB_ENV
         } else {
-            Write-Warning "未找到 Released 年份信息！"
-            echo "RELEASED_YEAR=Unknown" >> $env:GITHUB_ENV
+            $comingSoonMatch = [regex]::Match($sourceCode, $comingSoonRegex)
+            if ($comingSoonMatch.Success) {
+                $comingSoonYear = $comingSoonMatch.Groups[1].Value
+                echo "Found Coming Soon Year: $comingSoonYear"
+                echo "RELEASED_YEAR=$comingSoonYear" >> $env:GITHUB_ENV # 仍然设置 RELEASED_YEAR 环境变量
+            } else {
+                Write-Warning "未找到 Released 或 Coming Soon 年份信息！跳过此步骤。"
+                echo "RELEASED_YEAR=Unknown" >> $env:GITHUB_ENV # 仍然设置环境变量，避免后续步骤出错
+                exit 0 # 使用 exit 0 跳过此步骤后续的代码执行
+            }
         }
         
         echo "Found m3u8 URL: $processedUrl"
