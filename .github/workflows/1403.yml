@@ -460,7 +460,7 @@ jobs:
 
         # 第二次改名逻辑
         $outputFilePath = Get-Item "${videoFileName}.*"
-        $outputFileName = $outputFilePath.Name -replace 
+        $outputFileName = $outputFilePath.Name 
         $outputFileExtension = $outputFilePath.Extension
 
         # 检查是否需要改名
