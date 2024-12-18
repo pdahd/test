@@ -124,15 +124,12 @@ jobs:
           throw "未找到包含 m3u8 的 HTML 硬编码链接！"
         }
 
-        # 提取 Released 年份（最简洁的 Windows 优化版本）
-        $releasedYearMatch = $sourceCode | Select-String -Pattern '<dt class="typ-caption">\s*Released\s*</dt>\s*<dd class="product-footer__metadata__section__desc typ-caption clr-secondary-text">\s*(\d{4})\s*</dd>'
+        # 提取 Released 年份
+        $regex = '<dt class="typ-caption">\s*Released\s*</dt>\s*<dd class="product-footer__metadata__section__desc typ-caption clr-secondary-text">\s*(\d{4})\s*</dd>'
+        $releasedYearMatch = [regex]::Match($sourceCode, $regex)
 
-        if ($releasedYearMatch) {
-            $matchString = $releasedYearMatch.ToString()
-            $startIndex = $matchString.IndexOf('>') + 1
-            $endIndex = $matchString.LastIndexOf('<')
-            $releasedYear = $matchString.Substring($startIndex, $endIndex - $startIndex).Trim()
-
+        if ($releasedYearMatch.Success) {
+            $releasedYear = $releasedYearMatch.Groups[1].Value
             echo "Found Released Year: $releasedYear"
             echo "RELEASED_YEAR=$releasedYear" >> $env:GITHUB_ENV
         } else {
