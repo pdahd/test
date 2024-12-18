@@ -84,7 +84,7 @@ on:
           - '🇻🇳 越南语 Tiếng Việt'
       download_info: 
         description: |
-          🍏下载说明：
+          📃下载说明：
         required: false 
         type: choice
         options:
