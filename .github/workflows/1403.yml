@@ -123,6 +123,20 @@ jobs:
         } else {
           throw "未找到包含 m3u8 的 HTML 硬编码链接！"
         }
+
+        # 提取 Released 关键字的值
+        $releasedRegex = '<dt class="typ-caption">\s*Released\s*</dt>\s*<dd class="product-footer__metadata__section__desc typ-caption clr-secondary-text">\s*(\d{4})\s*</dd>'
+        $releasedMatch = [regex]::Match($sourceCode, $releasedRegex)
+
+        if ($releasedMatch.Success) {
+          $releaseYear = $releasedMatch.Groups[1].Value
+          Write-Host "`e[32mExtracted release year: $releaseYear`e[0m"
+          echo "RELEASE_YEAR=$releaseYear" >> $env:GITHUB_ENV
+        } else {
+          Write-Host "`e[33mNo release year found. Defaulting to 'Unknown'.`e[0m"
+          $releaseYear = "Unknown"
+          echo "RELEASE_YEAR=$releaseYear" >> $env:GITHUB_ENV
+        }
         
         echo "Found m3u8 URL: $processedUrl"
         echo $processedUrl > input.txt
