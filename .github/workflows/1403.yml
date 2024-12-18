@@ -7,7 +7,9 @@ on:
         description: |
           【输入 Apple 电影预告片链接】
           请访问 Apple 电影官网（https://tv.apple.com/），选择或搜索影片，复制浏览器地址栏中的链接并粘贴到此处。
+          以下是电影《圣诞怪杰》的预告片，它含有多语言声音和多语言字幕，这是链接示例：
         required: true
+        default: https://tv.apple.com/us/movie/spirited/umc.cmc.3lp7wqowerzdbej98tveildi3
       resolution:
         description: |
           【选择分辨率】
