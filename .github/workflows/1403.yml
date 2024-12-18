@@ -6,7 +6,7 @@ on:
       trailer_url:
         description: |
           【输入 Apple 电影预告片链接】
-          请访问 Apple 电影官网（https://tv.apple.com/），选择或搜索影片，复制浏览器地址栏中的链接并粘贴到此处。下面是某个预告片示例链接： https://tv.apple.com/us/movie/spirited/umc.cmc.3lp7wqowerzdbej98tveildi3
+          请访问 Apple 电影官网（https://tv.apple.com/），选择或搜索影片，复制浏览器地址栏中的链接并粘贴到此处。下面是某个预告链接示例： https://tv.apple.com/us/movie/spirited/umc.cmc.3lp7wqowerzdbej98tveildi3
         required: true
       resolution:
         description: |
@@ -171,7 +171,7 @@ jobs:
 
     - name: Process combined.m3u8 for Best Stream
       run: |
-        # 确定输入选择
+        # 确定用户输入选择
         $subtitleLanguage = "${{ github.event.inputs.subtitle_language }}"
         $resolution = "${{ github.event.inputs.resolution }}"
         $audioLanguage = "${{ github.event.inputs.audio_language }}"
