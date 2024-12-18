@@ -7,9 +7,8 @@ on:
         description: |
           【输入 Apple 电影预告片链接】
           请访问 Apple 电影官网（https://tv.apple.com/），选择或搜索影片，复制浏览器地址栏中的链接并粘贴到此处。
-          以下是电影《圣诞怪杰》的预告片，它含有多语言声音和多语言字幕，这是链接示例：
+          以下是电影《热情洋溢》的预告片链接示例： https://tv.apple.com/us/movie/spirited/umc.cmc.3lp7wqowerzdbej98tveildi3
         required: true
-        default: https://tv.apple.com/us/movie/spirited/umc.cmc.3lp7wqowerzdbej98tveildi3
       resolution:
         description: |
           【选择分辨率】
@@ -86,10 +85,11 @@ on:
           - '🇻🇳 越南语 Tiếng Việt'
       download_info: 
         description: |
-          🍏下载的预告片均未经任何重新编码或压缩，直接从 Apple 服务器拷贝原始流数据，没有任何质量损失。下载完成后，您可以在 GitHub Actions 工作流运行的“Artifacts”选项卡中找到下载的预告片文件。
+          【🍏下载说明】
         required: false 
         type: string 
-        default: 🍏下载的预告片均未经任何重新编码或压缩，直接从 Apple 服务器拷贝原始流数据，没有任何质量损失。下载完成后，您可以在 GitHub Actions 工作流运行的“Artifacts”选项卡中找到下载的预告片文件。
+        options:
+          - '下载的预告片均未经任何重新编码或压缩，直接从 Apple 服务器拷贝原始流数据，没有任何质量损失。下载完成后，您可以在 GitHub Actions 工作流运行的“Artifacts”选项卡中找到下载的预告片文件。'
         
       
 jobs:
