@@ -419,7 +419,7 @@ jobs:
         }
 
         # 视频、音频和字幕混流封装并命名
-        $videoFileName = "$movieTitle-$finalResolution-AppleTrailer" -replace ':', '-'
+        $videoFileName = "$movieTitle-$finalResolution-AppleTrailer".Replace(":", "-")
         if ($finalResolution -eq "1080p") {
           $audioFile = "audio.m4a"
         } elseif ($finalResolution -eq "4K") {
