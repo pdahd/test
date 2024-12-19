@@ -226,7 +226,7 @@ jobs:
 
         # 分辨率范围
         if ($resolution -eq '1080p') {
-          $minWidth = 1900
+          $minWidth = 1400
           $maxWidth = 2000
         } elseif ($resolution -eq '4K') {
           $minWidth = 3800
@@ -260,7 +260,7 @@ jobs:
 
         if (-not $bestStream -and $resolution -eq '4K') {
           Write-Host "`e[31mNo 4K stream found, falling back to 1080p.`e[0m"
-          $minWidth = 1900
+          $minWidth = 1400
           $maxWidth = 2000
           $maxBandwidth = 0
 
