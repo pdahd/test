@@ -334,19 +334,23 @@ jobs:
           $audioRegexDefault = "(https?://[^\s]+_audio_${defaultAudioTag}_gr160_.*?\.m3u8)"
           $audioRegexOld = "(https?://[^\s]+gr160\.m3u8)"
           $audioA = "(https?://[^\s]+gr160_.*?\.m3u8)"
-          $audioB = "(https?://[^\s]+_audio_${languageTag}\b(?:-[a-zA-Z0-9]+\b)?_gr160_.*?\.m3u8)"
+          $audioB = "(https?://[^\s]+_audio_${languageTag}-DE_gr160_.*?\.m3u8)"
+          $audioC = "(https?://[^\s]+_audio_${languageTag}-IT_gr160_.*?\.m3u8)"
           # 匹配所有音频链接 (用户选择的语言)
           $audioMatches = [regex]::Matches($m3u8Content, $audioRegex, 'IgnoreCase')
-          # 如果未找到用户选择的语言，则回退到默认的英语音频
+          # 如果未找到用户选择的语言，则寻找下一个
           if ($audioMatches.Count -eq 0) {
-            $audioMatches = [regex]::Matches($m3u8Content, $audioRegexDefault, 'IgnoreCase')
-            # 如果仍未找到，则尝试匹配老预告片格式的英语音频
+            $audioMatches = [regex]::Matches($m3u8Content, $audioB, 'IgnoreCase')
+            # 如果仍未找到，则寻找下一个
             if ($audioMatches.Count -eq 0) {
-              $audioMatches = [regex]::Matches($m3u8Content, $audioRegexOld, 'IgnoreCase')
+              $audioMatches = [regex]::Matches($m3u8Content, $audioC, 'IgnoreCase')
               if ($audioMatches.Count -eq 0) {
-                $audioMatches = [regex]::Matches($m3u8Content, $audioB, 'IgnoreCase')
+                $audioMatches = [regex]::Matches($m3u8Content, $audioRegexDefault, 'IgnoreCase')
                 if ($audioMatches.Count -eq 0) {
-                  $audioMatches = [regex]::Matches($m3u8Content, $audioA, 'IgnoreCase')
+                  $audioMatches = [regex]::Matches($m3u8Content, $audioRegexOld, 'IgnoreCase')
+                  if ($audioMatches.Count -eq 0) {
+                    $audioMatches = [regex]::Matches($m3u8Content, $audioA, 'IgnoreCase')
+                  }
                 }
               }
             }
