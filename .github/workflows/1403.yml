@@ -336,6 +336,7 @@ jobs:
           $audioA = "(https?://[^\s]+gr160_.*?\.m3u8)"
           $audioB = "(https?://[^\s]+_audio_${languageTag}-DE_gr160_.*?\.m3u8)"
           $audioC = "(https?://[^\s]+_audio_${languageTag}-IT_gr160_.*?\.m3u8)"
+          $audioD = "(https?://[^\s]+gr160-.m3u8)"
           # 匹配所有音频链接 (用户选择的语言)
           $audioMatches = [regex]::Matches($m3u8Content, $audioRegex, 'IgnoreCase')
           # 如果未找到用户选择的语言，则寻找下一个
@@ -350,6 +351,9 @@ jobs:
                   $audioMatches = [regex]::Matches($m3u8Content, $audioRegexOld, 'IgnoreCase')
                   if ($audioMatches.Count -eq 0) {
                     $audioMatches = [regex]::Matches($m3u8Content, $audioA, 'IgnoreCase')
+                    if ($audioMatches.Count -eq 0) {
+                      $audioMatches = [regex]::Matches($m3u8Content, $audioD, 'IgnoreCase')
+                    }
                   }
                 }
               }
