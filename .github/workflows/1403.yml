@@ -192,14 +192,28 @@ jobs:
         $titleRegex = '#EXT-X-SESSION-DATA:DATA-ID="com.apple.hls.title",VALUE="([^"]+?)(?:\s+Trailer)?"'
         $titleMatch = [regex]::Match($m3u8Content, $titleRegex)
 
-        if ($titleMatch.Success) {
+        if ($titleMatch.Success -and ($titleMatch.Groups[1].Value -notlike "*Trailer*")) {
           $movieTitle = $titleMatch.Groups[1].Value
-          Write-Host "`e[32mExtracted Movie Title: $movieTitle`e[0m"
-          echo "MOVIE_TITLE=$movieTitle" >> $env:GITHUB_ENV
+          Write-Host "`e[32mExtracted Movie Title from m3u8: $movieTitle`e[0m"
         } else {
-          Write-Host "`e[31mNo movie title found. Task cancelled.`e[0m"
-          exit 1
+          Write-Host "`e[33mMovie Title contains 'Trailer' or not found. Falling back to URL extraction...`e[0m"
+      
+          # 输入链接匹配逻辑
+          $inputUrl = "${{ github.event.inputs.trailer_url }}"
+          if ($inputUrl -match "/movie/([^/]+)/") {
+            $movieTitle = $matches[1]
+        
+            # 替换片名中的 "-" 符号为空格
+            $movieTitle = $movieTitle -replace "-", " "
+            Write-Host "`e[32mExtracted and processed Movie Title from URL: $movieTitle`e[0m"
+          } else {
+            Write-Host "`e[31mFailed to extract movie title from URL. Task cancelled.`e[0m"
+            exit 1
+          }
         }
+    
+        # 将提取的电影片名写入环境变量
+        echo "MOVIE_TITLE=$movieTitle" >> $env:GITHUB_ENV
 
         # 定义正则表达式
         $streamRegex = '#EXT-X-STREAM-INF:(.*?)\n(https?://[^\s]+)'
