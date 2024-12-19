@@ -334,7 +334,7 @@ jobs:
           $audioRegexDefault = "(https?://[^\s]+_audio_${defaultAudioTag}_gr160_.*?\.m3u8)"
           $audioRegexOld = "(https?://[^\s]+gr160\.m3u8)"
           $audioA = "(https?://[^\s]+gr160_.*?\.m3u8)"
-          $audioB = "(https?://[^\s]+_audio_${languageTag}.*_gr160_.*?\.m3u8)"
+          $audioB = "(https?://[^\s]+_audio_${languageTag}\b(?:-[a-zA-Z0-9]+\b)?_gr160_.*?\.m3u8)"
           # 匹配所有音频链接 (用户选择的语言)
           $audioMatches = [regex]::Matches($m3u8Content, $audioRegex, 'IgnoreCase')
           # 如果未找到用户选择的语言，则回退到默认的英语音频
@@ -344,9 +344,9 @@ jobs:
             if ($audioMatches.Count -eq 0) {
               $audioMatches = [regex]::Matches($m3u8Content, $audioRegexOld, 'IgnoreCase')
               if ($audioMatches.Count -eq 0) {
-                $audioMatches = [regex]::Matches($m3u8Content, $audioA, 'IgnoreCase')
+                $audioMatches = [regex]::Matches($m3u8Content, $audioB, 'IgnoreCase')
                 if ($audioMatches.Count -eq 0) {
-                  $audioMatches = [regex]::Matches($m3u8Content, $audioB, 'IgnoreCase')
+                  $audioMatches = [regex]::Matches($m3u8Content, $audioA, 'IgnoreCase')
                 }
               }
             }
