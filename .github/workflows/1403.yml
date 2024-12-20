@@ -197,11 +197,14 @@ jobs:
         $titleRegex = '#EXT-X-SESSION-DATA:DATA-ID="com.apple.hls.title",VALUE="([^"]+?)(?:\s+Trailer)?"'
         $titleMatch = [regex]::Match($m3u8Content, $titleRegex)
 
-        if ($titleMatch.Success -and ($titleMatch.Groups[1].Value -notlike "*Trailer*")) {
+        # 中文字符检测正则表达式
+        $chineseRegex = "[\u4e00-\u9fff]"
+
+        if ($titleMatch.Success -and ($titleMatch.Groups[1].Value -notlike "*Trailer*") -and (-not ($titleMatch.Groups[1].Value -match $chineseRegex))) {
           $movieTitle = $titleMatch.Groups[1].Value
           Write-Host "`e[32mExtracted Movie Title from m3u8: $movieTitle`e[0m"
         } else {
-          Write-Host "`e[33mMovie Title contains 'Trailer' or not found. Falling back to URL extraction...`e[0m"
+          Write-Host "`e[33mMovie Title contains 'Trailer', Chinese characters, or not found. Falling back to URL extraction...`e[0m"
       
           # 输入链接匹配逻辑
           $inputUrl = "${{ github.event.inputs.trailer_url }}"
