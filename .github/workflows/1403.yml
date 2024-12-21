@@ -215,8 +215,8 @@ jobs:
             $movieTitle = $movieTitle -replace "-", " "
             Write-Host "`e[32mExtracted and processed Movie Title from URL: $movieTitle`e[0m"
           } else {
-            Write-Host "`e[31mFailed to extract movie title from URL. Task cancelled.`e[0m"
-            exit 1
+            Write-Host "`e[33mFailed to extract movie title from URL. Defaulting to 'clip'.`e[0m"
+            $movieTitle = "clip"
           }
         }
     
