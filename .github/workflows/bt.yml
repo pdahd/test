@@ -1,4 +1,4 @@
-name: Aria2 Download Attempt
+name: Transmission-cli Download Attempt
 
 on:
   workflow_dispatch:
@@ -7,9 +7,9 @@ jobs:
   download:
     runs-on: ubuntu-latest
     steps:
-      - name: Install aria2
-        run: sudo apt-get update && sudo apt-get install -y aria2
+      - name: Install transmission-cli
+        run: sudo apt-get update && sudo apt-get install -y transmission-cli
 
-      - name: Attempt Download with aria2
-        run: aria2c --enable-dht=true --dht-file-path=/home/runner/.cache/aria2/dht.dat "magnet:?xt=urn:btih:99ffbc44b8328390b9bbb7ef942ebcc042782b0e&dn=[www.domp4.cc]%E5%BC%82%E5%BD%A2%EF%BC%9A%E5%A4%BA%E5%91%BD%E8%88%B0.2024.BD1080p.%E5%9B%BD%E8%8B%B1%E5%8F%8C%E8%AF%AD.%E4%B8%AD%E8%8B%B1%E5%8F%8C%E5%AD%97.mp4"
+      - name: Attempt Download with transmission-cli
+        run: transmission-cli "magnet:?xt=urn:btih:99ffbc44b8328390b9bbb7ef942ebcc042782b0e&dn=[www.domp4.cc]%E5%BC%82%E5%BD%A2%EF%BC%9A%E5%A4%BA%E5%91%BD%E8%88%B0.2024.BD1080p.%E5%9B%BD%E8%8B%B1%E5%8F%8C%E8%AF%AD.%E4%B8%AD%E8%8B%B1%E5%8F%8C%E5%AD%97.mp4"
         timeout-minutes: 5
