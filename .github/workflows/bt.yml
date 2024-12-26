@@ -1,4 +1,4 @@
-name: Download BT Link with Docker
+name: BT Download Attempt
 
 on:
   workflow_dispatch:
@@ -6,30 +6,13 @@ on:
 jobs:
   download:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-
-    container:
-      image: linuxserver/transmission:latest # 使用 Transmission Docker 镜像
-      volumes:
-        - downloads:/downloads # 挂载卷，用于存储下载的文件
-
     steps:
-      - name: Download BT link
-        id: download_bt
-        continue-on-error: true
+      - name: Install libtorrent
         run: |
-          BT_LINK="magnet:?xt=urn:btih:99ffbc44b8328390b9bbb7ef942ebcc042782b0e&dn=[www.domp4.cc]%E5%BC%82%E5%BD%A2%EF%BC%9A%E5%A4%BA%E5%91%BD%E8%88%B0.2024.BD1080p.%E5%9B%BD%E8%8B%B1%E5%8F%8C%E8%AF%AD.%E4%B8%AD%E8%8B%B1%E5%AD%97.mp4&tr=..."
-          transmission-remote -a "$BT_LINK" -w /downloads || echo "::set-output name=download_failed::true"
+          sudo apt-get update
+          sudo apt-get install -y python3-libtorrent
 
-      - name: List downloaded files
-        if: steps.download_bt.outputs.download_failed != 'true'
-        run: ls -l /downloads
-
-      - name: Archive downloaded files
-        if: steps.download_bt.outputs.download_failed != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: bt_downloads
-          path: /downloads
-
-     
+      - name: Attempt Download
+        run: |
+          python3 -c "import libtorrent as lt; ses = lt.session(); params = {'save_path': '.'}; ses.add_dht_router('router.utorrent.com', 6881); ses.add_dht_router('router.bittorrent.com', 6881); ses.add_dht_router('dht.transmissionbt.com', 6881); ses.start_dht(); handle = lt.add_magnet_uri(ses, 'magnet:?xt=urn:btih:99ffbc44b8328390b9bbb7ef942ebcc042782b0e&dn=[www.domp4.cc]%E5%BC%82%E5%BD%A2%EF%BC%9A%E5%A4%BA%E5%91%BD%E8%88%B0.2024.BD1080p.%E5%9B%BD%E8%8B%B1%E5%8F%8C%E8%AF%AD.%E4%B8%AD%E8%8B%B1%E5%8F%8C%E5%AD%97.mp4&tr=https://sparkle.ghostchu-services.top:443/announce&tr=https://1337.abcvg.info:443/announce&tr=https://p2p.azu.red:443/announce&tr=https://pybittrack.retiolus.net:443/announce&tr=https://torrent.tracker.durukanbal.com:443/announce&tr=https://tracker-zhuqiy.dgj055.icu:443/announce&tr=https://tracker.cloudit.top:443/announce&tr=https://tracker.gcrenwp.top:443/announce&tr=https://tracker.lilithraws.org:443/announce&tr=https://tracker.pmman.tech:443/announce&tr=https://tracker.tamersunion.org:443/announce&tr=https://tracker1.520.jp:443/announce&tr=https://trackers.mlsub.net:443/announce&tr=https://www.peckservers.com:9443/announce&tr=https://btn-prod.ghostchu-services.top/tracker/announce&tr=http://1337.abcvg.info:80/announce&tr=http://ipv6.rer.lol:6969/announce&tr=http://public.tracker.vraphim.com:6969/announce&tr=http://taciturn-shadow.spb.ru:6969/announce&tr=http://tracker.bt4g.com:2095/announce', params); print('Downloading metadata...'); while (not handle.has_metadata()): lt.sleep(1000); print('Got metadata, starting torrent download...'); s = handle.status(); while (s.state != lt.torrent_status.seeding): print(f'{s.progress * 100:.2f}% complete (down: {s.download_rate / 1000:.1f} kB/s up: {s.upload_rate / 1000:.1f} kB/s peers: {s.num_peers})'); s = handle.status(); lt.sleep(1000)"
+        timeout-minutes: 5
