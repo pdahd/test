@@ -1,0 +1,40 @@
+name: Download BT Link in Workflow
+
+on:
+  workflow_dispatch: # 手动触发工作流
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y aria2
+
+      - name: Download BT link
+        id: download_bt # 为此步骤设置 ID，以便后续步骤引用其输出
+        continue-on-error: true # 即使下载失败也继续执行后续步骤
+        run: |
+          BT_LINK="magnet:?xt=urn:btih:99ffbc44b8328390b9bbb7ef942ebcc042782b0e&dn=[www.domp4.cc]%E5%BC%82%E5%BD%A2%EF%BC%9A%E5%A4%BA%E5%91%BD%E8%88%B0.2024.BD1080p.%E5%9B%BD%E8%8B%B1%E5%8F%8C%E8%AF%AD.%E4%B8%AD%E8%8B%B1%E5%8F%8C%E5%AD%97.mp4&tr=..." # 将 BT 链接存储在变量中
+          aria2c "$BT_LINK" --dir=bt_downloads --max-connection-per-server=16 --split=16 --min-split-size=1M --check-certificate=false || echo "::set-output name=download_failed::true" # 使用 aria2c 下载，并处理错误
+
+      - name: Check download status
+        if: steps.download_bt.outputs.download_failed == 'true'
+        run: echo "BT download failed. Check logs for details."
+
+      - name: List downloaded files (if successful)
+        if: steps.download_bt.outputs.download_failed != 'true'
+        run: |
+          ls -l bt_downloads
+          du -sh bt_downloads
+
+      - name: Archive downloaded files (Optional, if needed)
+        if: steps.download_bt.outputs.download_failed != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bt_downloads
+          path: bt_downloads
+
+     
