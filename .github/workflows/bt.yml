@@ -1,49 +1,35 @@
-name: Download BT Link with Transmission
+name: Download BT Link with Docker
 
 on:
-  workflow_dispatch: # 手动触发工作流
+  workflow_dispatch:
 
 jobs:
   download:
     runs-on: ubuntu-latest
-    timeout-minutes: 60 # 设置超时时间，防止长时间卡住
+    timeout-minutes: 60
+
+    container:
+      image: linuxserver/transmission:latest # 使用 Transmission Docker 镜像
+      volumes:
+        - downloads:/downloads # 挂载卷，用于存储下载的文件
 
     steps:
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y transmission-cli
-
       - name: Download BT link
         id: download_bt
-        continue-on-error: true # 即使下载失败也继续执行后续步骤，以便记录日志
+        continue-on-error: true
         run: |
-          BT_LINK="magnet:?xt=urn:btih:99ffbc44b8328390b9bbb7ef942ebcc042782b0e&dn=[www.domp4.cc]%E5%BC%82%E5%BD%A2%EF%BC%9A%E5%A4%BA%E5%91%BD%E8%88%B0.2024.BD1080p.%E5%9B%BD%E8%8B%B1%E5%8F%8C%E8%AF%AD.%E4%B8%AD%E8%8B%B1%E5%AD%97.mp4&tr=..." # 你的磁力链接
-          transmission-remote -a "$BT_LINK" -w bt_downloads
-          if [ $? -ne 0 ]; then
-            echo "::error::Transmission download failed. Check logs for details." # 使用 ::error:: 标记错误信息，在日志中更明显
-            echo "DOWNLOAD_SUCCEEDED=false" >> $GITHUB_ENV
-            exit 1 # 步骤失败
-          else
-            echo "DOWNLOAD_SUCCEEDED=true" >> $GITHUB_ENV
-          fi
+          BT_LINK="magnet:?xt=urn:btih:99ffbc44b8328390b9bbb7ef942ebcc042782b0e&dn=[www.domp4.cc]%E5%BC%82%E5%BD%A2%EF%BC%9A%E5%A4%BA%E5%91%BD%E8%88%B0.2024.BD1080p.%E5%9B%BD%E8%8B%B1%E5%8F%8C%E8%AF%AD.%E4%B8%AD%E8%8B%B1%E5%AD%97.mp4&tr=..."
+          transmission-remote -a "$BT_LINK" -w /downloads || echo "::set-output name=download_failed::true"
 
-      - name: Check download status and list files (if successful)
-        if: env.DOWNLOAD_SUCCEEDED == 'true'
-        run: |
-          echo "BT download succeeded!"
-          ls -l bt_downloads
-          du -sh bt_downloads
+      - name: List downloaded files
+        if: steps.download_bt.outputs.download_failed != 'true'
+        run: ls -l /downloads
 
-      - name: Check download status and report failure (if failed)
-        if: env.DOWNLOAD_SUCCEEDED != 'true'
-        run: echo "BT download failed. Please check the logs above for more details."
-
-      - name: Archive downloaded files (Optional - only if download succeeded)
-        if: env.DOWNLOAD_SUCCEEDED == 'true'
+      - name: Archive downloaded files
+        if: steps.download_bt.outputs.download_failed != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: bt_downloads
-          path: bt_downloads
+          path: /downloads
 
      
