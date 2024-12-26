@@ -1,4 +1,4 @@
-name: Download BT Link in Workflow
+name: Download BT Link with Transmission
 
 on:
   workflow_dispatch:
@@ -6,23 +6,20 @@ on:
 jobs:
   download:
     runs-on: ubuntu-latest
+    timeout-minutes: 60 # 设置超时时间，防止长时间卡住
+
     steps:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y aria2
-
-      - name: Clean aria2 cache # 清理缓存
-        run: rm -rf /home/runner/.cache/aria2
+          sudo apt-get install -y transmission-cli
 
       - name: Download BT link
         id: download_bt
         continue-on-error: true
         run: |
           BT_LINK="magnet:?xt=urn:btih:99ffbc44b8328390b9bbb7ef942ebcc042782b0e&dn=[www.domp4.cc]%E5%BC%82%E5%BD%A2%EF%BC%9A%E5%A4%BA%E5%91%BD%E8%88%B0.2024.BD1080p.%E5%9B%BD%E8%8B%B1%E5%8F%8C%E8%AF%AD.%E4%B8%AD%E8%8B%B1%E5%AD%97.mp4&tr=..."
-          TRACKERS="udp://tracker.coppersurfer.tk:6969/announce,udp://tracker.openbittorrent.com:80/announce" # 添加更多 Tracker
-          aria2c "$BT_LINK" --dir=bt_downloads --max-connection-per-server=16 --split=16 --min-split-size=1M --check-certificate=false --bt-tracker="$TRACKERS" || echo "::set-output name=download_failed::true"
-
+          transmission-remote -a "$BT_LINK" -w bt_downloads || echo "::set-output name=download_failed::true" # -w 指定下载目录
 
       - name: Check download status
         if: steps.download_bt.outputs.download_failed == 'true'
@@ -41,4 +38,4 @@ jobs:
           name: bt_downloads
           path: bt_downloads
 
-     
+      
