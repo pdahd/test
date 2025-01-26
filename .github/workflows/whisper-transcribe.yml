@@ -21,7 +21,7 @@ jobs:
     - name: Run Whisper transcription
       run: |
         mkdir -p outputs
-        whisper 2025.m4a --model large --output_format srt --output_dir outputs
+        whisper 2025.m4a --model turbo --output_format srt --output_dir outputs
 
     # 4. 上传 SRT 文件为工件
     - name: Upload transcription artifact
