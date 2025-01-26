@@ -1,0 +1,31 @@
+name: Whisper Transcription
+
+on:
+  workflow_dispatch: # 手动触发工作流
+
+jobs:
+  transcribe:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        pip install git+https://github.com/openai/whisper.git
+        sudo apt update
+        sudo apt install -y ffmpeg
+
+    # 3. 运行 Whisper 转录
+    - name: Run Whisper transcription
+      run: |
+        mkdir -p outputs
+        whisper 2025.m4a --model large --output_format srt --output_dir outputs
+
+    # 4. 上传 SRT 文件为工件
+    - name: Upload transcription artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: transcription
+        path: outputs/2025.srt
