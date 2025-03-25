@@ -568,22 +568,11 @@ jobs:
         path: workdir/*
         
     - name: Create GitHub Release
-      id: create_release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v2.2.1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ env.RENAMED_FILE_BASE }}
-        release_name: ${{ env.RENAMED_FILE_BASE }}
-        draft: false
-        prerelease: false
-
-    - name: Upload Artifact to GitHub Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ env.RENAMED_FILE }}
-        asset_name: ${{ env.RENAMED_FILE }}
-        asset_content_type: application/octet-stream
+        name: ${{ env.RENAMED_FILE_BASE }}
+        files: |
+          ${{ env.RENAMED_FILE }}
