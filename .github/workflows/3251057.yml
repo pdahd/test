@@ -576,4 +576,5 @@ jobs:
         name: ${{ env.RENAMED_FILE_BASE }}
         files: |
           ${{ env.RENAMED_FILE }}
-          workdir/*
+          ${{ github.workspace }}/workdir/*
+        fail_on_unmatched_files: true
