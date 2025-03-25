@@ -87,6 +87,28 @@ on:
           - '🇹🇷 土耳其语 Türkçe'
           - '🇺🇦 乌克兰语 українська'
           - '🇻🇳 越南语 Tiếng Việt'
+      tag_type:
+        description: "选择 Tag 名称类型"
+        required: true
+        type: choice
+        options:
+          - "默认名称"
+          - "自定义名称"
+      tag_custom:
+        description: "请输入自定义的 Tag 名称（如果选择了自定义名称）"
+        required: false
+        default: ""
+      name_type:
+        description: "选择 Release 名称类型"
+        required: true
+        type: choice
+        options:
+          - "默认名称"
+          - "自定义名称"
+      name_custom:
+        description: "请输入自定义的 Release 名称（如果选择了自定义名称）"
+        required: false
+        default: ""
       download_info: 
         description: |
           📃下载说明：
@@ -578,8 +600,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ env.RENAMED_FILE_BASE }}
-        name: ${{ env.RENAMED_FILE_BASE }}
+        tag_name: |
+          ${{ github.event.inputs.tag_type == '自定义名称' && github.event.inputs.tag_custom || env.RENAMED_FILE_BASE }}
+        name: |
+          ${{ github.event.inputs.name_type == '自定义名称' && github.event.inputs.name_custom || env.RENAMED_FILE_BASE }}
         files: |
           ${{ env.RENAMED_FILE }}
           workdir/${{ env.TIMESTAMP }}/combined.m3u8
