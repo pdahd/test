@@ -582,6 +582,6 @@ jobs:
         name: ${{ env.RENAMED_FILE_BASE }}
         files: |
           ${{ env.RENAMED_FILE }}
-          workdir/${{ env.TIMESTAMP }}/*
+          workdir/${{ env.TIMESTAMP }}/combined.m3u8
           
         
