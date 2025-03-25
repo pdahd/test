@@ -180,6 +180,7 @@ jobs:
         }
         echo "New M3U8 file created at $newM3u8File"
         Get-Content "workdir\$timestamp\combined.m3u8"
+        echo "TIMESTAMP=$timestamp" >> $env:GITHUB_ENV
 
     - name: Process combined.m3u8 for Best Stream
       run: |
@@ -567,6 +568,11 @@ jobs:
         name: m3u8-results
         path: workdir/*
         
+    - name: Debug List contents of timestamp directory
+      run: |
+        echo "Checking files in workdir/${{ env.TIMESTAMP }}:"
+        ls workdir/${{ env.TIMESTAMP }}
+    
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2.2.1
       env:
@@ -576,5 +582,6 @@ jobs:
         name: ${{ env.RENAMED_FILE_BASE }}
         files: |
           ${{ env.RENAMED_FILE }}
-          ${{ github.workspace }}/workdir/*
-        fail_on_unmatched_files: true
+          workdir/${{ env.TIMESTAMP }}/*
+          
+        
