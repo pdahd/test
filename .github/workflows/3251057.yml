@@ -1,0 +1,589 @@
+name: appledownload
+
+on:
+  workflow_dispatch:
+    inputs:
+      trailer_url:
+        description: |
+          【输入 Apple 电影预告片链接】
+          请访问 Apple 电影官网（https://tv.apple.com/），选择或搜索影片，复制浏览器地址栏中的链接并粘贴到此处。下面是某个预告链接示例： https://tv.apple.com/us/movie/spirited/umc.cmc.3lp7wqowerzdbej98tveildi3
+        required: true
+      resolution:
+        description: |
+          【选择分辨率】
+          若 Apple 未提供 4K 分辨率，将默认为 1080p；若提供的最高分辨率低于 1080p，下载任务将被取消。4K 预告片提供杜比视界 (Dolby Vision) 和杜比全景声 (Dolby Atmos)。
+        required: false
+        type: choice
+        options:
+          - '1080p'
+          - '4K'
+      audio_language:
+        description: |
+          【选择声音语言】
+          提供 10 种声音语言可供选择；若 Apple 未提供所选语言，则默认为英语（原声）。
+        required: false
+        type: choice
+        options:
+          - '🇺🇸 英语（原声）'
+          - '🇨🇳 中文普通话'
+          - '🇪🇸 加泰罗尼亚语'
+          - '🇩🇪 德语'
+          - '🇲🇽 拉丁美洲西班牙语'
+          - '🇪🇸 欧洲西班牙语'
+          - '🇨🇦 加拿大法语'
+          - '🇫🇷 法国法语'
+          - '🇮🇹 意大利语'
+          - '🇯🇵 日语'
+          - '🇧🇷 巴西葡萄牙语'
+          - '🇷🇺 俄语'
+          - '🇹🇭 泰语'
+          - '🇹🇷 土耳其语'
+          - '🇺🇦 乌克兰语'
+      subtitle_language:
+        description: |
+          【选择字幕语言】
+          提供 41 种字幕语言。字幕默认封装在视频中，可在播放时选择开启或关闭。安卓设备建议使用 MX Player 并启用软解码播放。若 Apple 未提供字幕，则下载的预告片将不包含字幕。
+        required: false
+        type: choice
+        options:
+          - '🇨🇳 中文简体'
+          - '🇹🇼 中文繁體'
+          - '🇭🇰 中文粤语'
+          - '🇺🇸 英语 English'
+          - '🇸🇦 阿拉伯语 العربية'
+          - '🇧🇬 保加利亚语 български'
+          - '🇨🇿 捷克语 Čeština'
+          - '🇩🇰 丹麦语 dansk'
+          - '🇩🇪 德语 Deutsch'
+          - '🇬🇷 希腊语 Ελληνικά'
+          - '🇲🇽 西班牙语（拉丁美洲） Español (Latinoamérica)'
+          - '🇪🇸 西班牙语（西班牙） Español (España)'
+          - '🇪🇪 爱沙尼亚语 eesti'
+          - '🇫🇮 芬兰语 Suomi'
+          - '🇨🇦 法语（加拿大） Français (Canada)'
+          - '🇫🇷 法语（法国） Français (France)'
+          - '🇮🇱 希伯来语 עברית'
+          - '🇮🇳 印地语 हिन्दी'
+          - '🇭🇺 匈牙利语 magyar'
+          - '🇮🇩 印尼语 Bahasa Indonesia'
+          - '🇮🇹 意大利语 Italiano'
+          - '🇯🇵 日语 日本語'
+          - '🇰🇷 韩语 한국어'
+          - '🇱🇹 立陶宛语 lietuvių'
+          - '🇱🇻 拉脱维亚语 latviešu'
+          - '🇲🇾 马来语 Bahasa Melayu'
+          - '🇳🇱 荷兰语 Nederlands'
+          - '🇳🇴 挪威语 norsk'
+          - '🇵🇱 波兰语 polski'
+          - '🇧🇷 葡萄牙语（巴西） Português (Brasil)'
+          - '🇵🇹 葡萄牙语 Português'
+          - '🇷🇺 俄语 Русский'
+          - '🇸🇰 斯洛伐克语 Slovenčina'
+          - '🇸🇮 斯洛文尼亚语 slovenščina'
+          - '🇸🇪 瑞典语 Svenska'
+          - '🇮🇳 泰米尔语 தமிழ்'
+          - '🇮🇳 泰卢固语 తెలుగు'
+          - '🇹🇭 泰语 ไทย'
+          - '🇹🇷 土耳其语 Türkçe'
+          - '🇺🇦 乌克兰语 українська'
+          - '🇻🇳 越南语 Tiếng Việt'
+      download_info: 
+        description: |
+          📃下载说明：
+        required: false 
+        type: choice
+        options:
+          - '下载过程中未经任何重新编码或压缩，直接从 Apple 服务器拷贝原始流数据，没有任何质量损失。下载完成后，您可以在 GitHub Actions 工作流运行的“Artifacts”选项卡中找到下载的预告片文件。'
+        
+      
+jobs:
+  download-apple-trailers:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download N_m3u8DL-CLI
+      run: |
+        Invoke-WebRequest -Uri https://github.com/nilaoda/N_m3u8DL-CLI/releases/download/3.0.2/N_m3u8DL-CLI_v3.0.2.exe -OutFile N_m3u8DL-CLI.exe
+    
+    - name: Download ffmpeg
+      run: |
+        Invoke-WebRequest -Uri https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip -OutFile ffmpeg-latest.zip
+        Expand-Archive -Path ffmpeg-latest.zip -DestinationPath ffmpeg
+        Move-Item ffmpeg/*/bin/ffmpeg.exe .
+    
+    - name: Process input URL
+      run: |
+        $trailerUrl = "${{ github.event.inputs.trailer_url }}"
+        # 获取输入链接的源代码
+        $sourceCode = curl -s "$trailerUrl"
+        
+        # 提取包含 m3u8 的完整 HTML 硬编码链接
+        $m3u8Links = ($sourceCode | Select-String -Pattern 'https.*?\.m3u8.*?"') `
+                      -replace '&amp;', '&' `
+                      -replace '.*content="(https.*?\.m3u8.*?)".*', '$1'
+        
+        # 选择第一个匹配链接
+        if ($m3u8Links.Length -gt 0) {
+          $processedUrl = $m3u8Links[0]
+        } else {
+          throw "未找到包含 m3u8 的 HTML 硬编码链接！"
+        }
+
+        # 提取 Released 或 Coming Soon 关键字的值
+        $releasedRegex = '<dt class="typ-caption">\s*Released\s*</dt>\s*<dd class="product-footer__metadata__section__desc typ-caption clr-secondary-text">\s*(\d{4})\s*</dd>'
+        $comingSoonRegex = '<dt class="typ-caption">\s*Coming Soon\s*</dt>\s*<dd class="product-footer__metadata__section__desc typ-caption clr-secondary-text">\s*(\d{4})\s*</dd>'
+    
+        # 尝试匹配 Released
+        $releaseMatch = [regex]::Match($sourceCode, $releasedRegex)
+        if ($releaseMatch.Success) {
+          $releaseYear = $releaseMatch.Groups[1].Value
+          Write-Host "`e[32mExtracted Released year: $releaseYear`e[0m"
+        } else {
+          # 如果未找到 Released，则匹配 Coming Soon
+          $comingSoonMatch = [regex]::Match($sourceCode, $comingSoonRegex)
+          if ($comingSoonMatch.Success) {
+            $releaseYear = $comingSoonMatch.Groups[1].Value
+            Write-Host "`e[33mReleased year not found. Using Coming Soon year: $releaseYear`e[0m"
+          } else {
+            Write-Host "`e[33mNo release year or coming soon year found. Defaulting to 'Unknown'.`e[0m"
+            $releaseYear = "Unknown"
+          }
+        }
+    
+        # 写入环境变量
+        echo "RELEASE_YEAR=$releaseYear" >> $env:GITHUB_ENV
+        
+        echo "Found m3u8 URL: $processedUrl"
+        echo $processedUrl > input.txt
+    
+    - name: Parse M3U8 with N_m3u8DL-CLI
+      if: ${{ github.event.inputs.trailer_url != '' }}
+      run: |
+        mkdir workdir
+        .\N_m3u8DL-CLI.exe $(Get-Content input.txt) --enableParseOnly --workDir workdir
+        dir workdir
+        $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
+        $rawM3u8File = "workdir\$timestamp\raw.m3u8"
+        $masterM3u8File = "workdir\$timestamp\master.m3u8"
+        $newM3u8File = "workdir\$timestamp\combined.m3u8"
+    
+        if (Test-Path $masterM3u8File) {
+          echo "# Combined M3U8 file" > $newM3u8File
+          Get-Content $masterM3u8File >> $newM3u8File
+          echo "" >> $newM3u8File
+          Get-Content $rawM3u8File >> $newM3u8File
+        } else {
+          Copy-Item $rawM3u8File $newM3u8File
+        }
+        echo "New M3U8 file created at $newM3u8File"
+        Get-Content "workdir\$timestamp\combined.m3u8"
+
+    - name: Process combined.m3u8 for Best Stream
+      run: |
+        # 确定用户输入选择
+        $subtitleLanguage = "${{ github.event.inputs.subtitle_language }}"
+        $resolution = "${{ github.event.inputs.resolution }}"
+        $audioLanguage = "${{ github.event.inputs.audio_language }}"
+        $timestamp = Get-ChildItem -Directory workdir | Select-Object -First 1 -ExpandProperty Name
+        $m3u8File = "workdir\$timestamp\combined.m3u8"
+
+        # 读取 M3U8 文件内容
+        $m3u8Content = Get-Content $m3u8File -Raw
+
+        # 匹配片名
+        $titleRegex = '#EXT-X-SESSION-DATA:DATA-ID="com.apple.hls.title",VALUE="([^"]+?)(?:\s+Trailer)?"'
+        $titleMatch = [regex]::Match($m3u8Content, $titleRegex)
+
+        # 中文字符检测正则表达式
+        $chineseRegex = "[\u4e00-\u9fff]"
+
+        if ($titleMatch.Success -and ($titleMatch.Groups[1].Value -notlike "*Trailer*") -and (-not ($titleMatch.Groups[1].Value -match $chineseRegex))) {
+          $movieTitle = $titleMatch.Groups[1].Value
+          Write-Host "`e[32mExtracted Movie Title from m3u8: $movieTitle`e[0m"
+        } else {
+          Write-Host "`e[33mMovie Title contains 'Trailer', Chinese characters, or not found. Falling back to URL extraction...`e[0m"
+      
+          # 输入链接匹配逻辑
+          $inputUrl = "${{ github.event.inputs.trailer_url }}"
+          if ($inputUrl -match "/movie/([^/]+)/") {
+            $movieTitle = $matches[1]
+        
+            # 替换片名中的 "-" 符号为空格
+            $movieTitle = $movieTitle -replace "-", " "
+            Write-Host "`e[32mExtracted and processed Movie Title from URL: $movieTitle`e[0m"
+          } else {
+            Write-Host "`e[33mFailed to extract movie title from URL. Defaulting to 'clip'.`e[0m"
+            $movieTitle = "clip"
+          }
+        }
+    
+        # 将提取的电影片名写入环境变量
+        echo "MOVIE_TITLE=$movieTitle" >> $env:GITHUB_ENV
+
+        # 定义正则表达式
+        $streamRegex = '#EXT-X-STREAM-INF:(.*?)\n(https?://[^\s]+)'
+        $matches = [regex]::Matches($m3u8Content, $streamRegex, 'IgnoreCase, Multiline')
+
+        # 分辨率范围
+        if ($resolution -eq '1080p') {
+          $minWidth = 1400
+          $maxWidth = 2000
+        } elseif ($resolution -eq '4K') {
+          $minWidth = 3800
+          $maxWidth = 4500
+        }
+
+        # 查找最佳流
+        $bestStream = $null
+        $maxBandwidth = 0
+        $finalResolution = $resolution
+
+        foreach ($match in $matches) {
+          $streamInf = $match.Groups[1].Value
+          $url = $match.Groups[2].Value
+
+          $resolutionMatch = [regex]::Match($streamInf, 'RESOLUTION=(\d+)x(\d+)', 'IgnoreCase')
+          $bandwidthMatch = [regex]::Match($streamInf, 'AVERAGE-BANDWIDTH=(\d+)', 'IgnoreCase')
+
+          if ($resolutionMatch.Success -and $bandwidthMatch.Success) {
+            $width = [int]$resolutionMatch.Groups[1].Value
+            $averageBandwidth = [int]$bandwidthMatch.Groups[1].Value
+
+            if ($width -ge $minWidth -and $width -le $maxWidth) {
+              if ($averageBandwidth -gt $maxBandwidth) {
+                $maxBandwidth = $averageBandwidth
+                $bestStream = $url
+              }
+            }
+          }
+        }
+
+        if (-not $bestStream -and $resolution -eq '4K') {
+          Write-Host "`e[31mNo 4K stream found, falling back to 1080p.`e[0m"
+          $minWidth = 1400
+          $maxWidth = 2000
+          $maxBandwidth = 0
+
+          foreach ($match in $matches) {
+            $streamInf = $match.Groups[1].Value
+            $url = $match.Groups[2].Value
+
+            $resolutionMatch = [regex]::Match($streamInf, 'RESOLUTION=(\d+)x(\d+)', 'IgnoreCase')
+            $bandwidthMatch = [regex]::Match($streamInf, 'AVERAGE-BANDWIDTH=(\d+)', 'IgnoreCase')
+
+            if ($resolutionMatch.Success -and $bandwidthMatch.Success) {
+              $width = [int]$resolutionMatch.Groups[1].Value
+              $averageBandwidth = [int]$bandwidthMatch.Groups[1].Value
+
+              if ($width -ge $minWidth -and $width -le $maxWidth) {
+                if ($averageBandwidth -gt $maxBandwidth) {
+                  $maxBandwidth = $averageBandwidth
+                  $bestStream = $url
+                  $finalResolution = "1080p"
+                }
+              }
+            }
+          }
+        }
+
+        if (-not $bestStream) {
+          Write-Host "`e[31mNo suitable stream found. Task cancelled.`e[0m"
+          exit 1
+        }
+
+        Write-Host "`e[32mBest Stream URL: $bestStream`e[0m"
+        echo "BEST_STREAM_URL=$bestStream" >> $env:GITHUB_ENV
+        echo "FINAL_RESOLUTION=$finalResolution" >> $env:GITHUB_ENV
+
+        # 下载视频并写入环境变量
+        .\ffmpeg.exe -i "$bestStream" -c copy "AppleTrailer.mov" *>&1 | Tee-Object -FilePath ffmpeg_download.log -Append
+        Write-Host "`e[32mDownloaded video file: AppleTrailer.mov`e[0m"
+        echo "VIDEO_FILE=AppleTrailer.mov" >> $env:GITHUB_ENV
+
+        # 调试：打印用户选择的语言值
+        Write-Host "`e[32mUser Selected Audio Language: $audioLanguage`e[0m"
+        # 定义音频语言映射表
+        $languageMap = @{
+          "🇺🇸 英语（原声）" = "en"
+          "🇨🇳 中文普通话" = "cmn"
+          "🇪🇸 加泰罗尼亚语" = "ca"
+          "🇩🇪 德语" = "de"
+          "🇲🇽 拉丁美洲西班牙语" = "es-419"
+          "🇪🇸 欧洲西班牙语" = "es-ES"
+          "🇨🇦 加拿大法语" = "fr-CA"
+          "🇫🇷 法国法语" = "fr-FR"
+          "🇮🇹 意大利语" = "it"
+          "🇯🇵 日语" = "ja"
+          "🇧🇷 巴西葡萄牙语" = "pt-BR"
+          "🇷🇺 俄语" = "ru"
+          "🇹🇭 泰语" = "th"
+          "🇹🇷 土耳其语" = "tr"
+          "🇺🇦 乌克兰语" = "uk"
+        }
+        
+        # 确定音频语言标签
+        $languageTag = $languageMap[$audioLanguage]
+        # 调试：打印处理后的语言标签值
+        Write-Host "`e[32mProcessed Language Tag: $languageTag`e[0m"
+        $bestAudioUrl = $null
+        if ($finalResolution -eq '1080p') {
+          # 默认的英语标签
+          $defaultAudioTag = "en"
+          # 定义正则表达式
+          $audioRegex = "(https?://[^\s]+_audio_${languageTag}_gr160_.*?\.m3u8)"
+          $audioRegexDefault = "(https?://[^\s]+_audio_${defaultAudioTag}_gr160_.*?\.m3u8)"
+          $audioRegexOld = "(https?://[^\s]+gr160\.m3u8)"
+          $audioA = "(https?://[^\s]+gr160_.*?\.m3u8)"
+          $audioB = "(https?://[^\s]+_audio_${languageTag}-DE_gr160_.*?\.m3u8)"
+          $audioC = "(https?://[^\s]+_audio_${languageTag}-IT_gr160_.*?\.m3u8)"
+          $audioD = "(https?://[^\s]+gr160-.m3u8)"
+          # 匹配所有音频链接 (用户选择的语言)
+          $audioMatches = [regex]::Matches($m3u8Content, $audioRegex, 'IgnoreCase')
+          # 如果未找到用户选择的语言，则寻找下一个
+          if ($audioMatches.Count -eq 0) {
+            $audioMatches = [regex]::Matches($m3u8Content, $audioB, 'IgnoreCase')
+            # 如果仍未找到，则寻找下一个
+            if ($audioMatches.Count -eq 0) {
+              $audioMatches = [regex]::Matches($m3u8Content, $audioC, 'IgnoreCase')
+              if ($audioMatches.Count -eq 0) {
+                $audioMatches = [regex]::Matches($m3u8Content, $audioRegexDefault, 'IgnoreCase')
+                if ($audioMatches.Count -eq 0) {
+                  $audioMatches = [regex]::Matches($m3u8Content, $audioRegexOld, 'IgnoreCase')
+                  if ($audioMatches.Count -eq 0) {
+                    $audioMatches = [regex]::Matches($m3u8Content, $audioA, 'IgnoreCase')
+                    if ($audioMatches.Count -eq 0) {
+                      $audioMatches = [regex]::Matches($m3u8Content, $audioD, 'IgnoreCase')
+                    }
+                  }
+                }
+              }
+            }
+          }
+          # 提取最佳音频链接
+          if ($audioMatches.Count -gt 0) {
+            $bestAudioUrl = $audioMatches[0].Groups[1].Value
+          }
+          if ($bestAudioUrl) {
+            Write-Host "`e[32mFound the best audio URL: $bestAudioUrl`e[0m"
+            .\ffmpeg.exe -i $bestAudioUrl -c copy audio.m4a
+            echo "AUDIO_FILE=audio.m4a" >> $env:GITHUB_ENV
+            # 调试：打印下载后的音频文件
+            Write-Host "`e[32mDownloaded Audio File: audio.m4a`e[0m"
+          } else {
+            Write-Host "`e[31mNo suitable audio stream found. Task cancelled.`e[0m"
+            exit 1
+          }
+        } elseif ($finalResolution -eq '4K') {
+          # 默认的英语标签
+          $defaultAudioTag = "en"
+          # 定义正则表达式
+          $audioRegex = "(https?://[^\s]+_audio_${languageTag}_gr(\d+)_.*?\.m3u8)"
+          $audioRegexDefault = "(https?://[^\s]+_audio_${defaultAudioTag}_gr(\d+)_.*?\.m3u8)"
+          # 匹配所有音频链接 (用户选择的语言)
+          $audioMatches = [regex]::Matches($m3u8Content, $audioRegex, 'IgnoreCase')
+          # 如果未找到用户选择的语言，则回退到默认的英语音频
+          if ($audioMatches.Count -eq 0) {
+            $audioMatches = [regex]::Matches($m3u8Content, $audioRegexDefault, 'IgnoreCase')
+          }
+          $maxGrValue = 0
+          # 比对gr数值，选择最大gr值的音频链接
+          foreach ($match in $audioMatches) {
+            $audioUrl = $match.Groups[1].Value
+            $grValue = [int]$match.Groups[2].Value
+            if ($grValue -gt $maxGrValue) {
+              $maxGrValue = $grValue
+              $bestAudioUrl = $audioUrl
+            }
+          }
+          if ($bestAudioUrl) {
+            Write-Host "`e[32mFound the best audio URL: $bestAudioUrl`e[0m"
+            .\ffmpeg.exe -i $bestAudioUrl -c copy audio.ec3 *>&1 | Tee-Object -FilePath ffmpeg_download.log -Append
+            echo "AUDIO_FILE=audio.ec3" >> $env:GITHUB_ENV
+            echo "FFMPEG_LOG=ffmpeg_download.log" >> $env:GITHUB_ENV
+            # 调试：打印下载后的音频文件
+            Write-Host "`e[32mDownloaded Audio File: audio.ec3`e[0m"
+          } else {
+            Write-Host "`e[31mNo suitable audio stream found. Task cancelled.`e[0m"
+            exit 1
+          }
+        }
+        
+        # 调试：打印用户选择的语言值
+        Write-Host "`e[32mUser Selected Subtitle Language: $subtitleLanguage`e[0m"
+        # 定义字幕语言映射表
+        $subtitleLanguageMap = @{
+          "🇨🇳 中文简体" = "cmn-Hans"
+          "🇹🇼 中文繁體" = "cmn-Hant"
+          "🇭🇰 中文粤语" = "yue-Hant"
+          "🇺🇸 英语 English" = "en"
+          "🇸🇦 阿拉伯语 العربية" = "ar"
+          "🇧🇬 保加利亚语 български" = "bg"
+          "🇨🇿 捷克语 Čeština" = "cs"
+          "🇩🇰 丹麦语 dansk" = "da"
+          "🇩🇪 德语 Deutsch" = "de"
+          "🇬🇷 希腊语 Ελληνικά" = "el"
+          "🇲🇽 西班牙语（拉丁美洲） Español (Latinoamérica)" = "es-419"
+          "🇪🇸 西班牙语（西班牙） Español (España)" = "es-ES"
+          "🇪🇪 爱沙尼亚语 eesti" = "et"
+          "🇫🇮 芬兰语 Suomi" = "fi"
+          "🇨🇦 法语（加拿大） Français (Canada)" = "fr-CA"
+          "🇫🇷 法语（法国） Français (France)" = "fr-FR"
+          "🇮🇱 希伯来语 עברית" = "he"
+          "🇮🇳 印地语 हिन्दी" = "hi"
+          "🇭🇺 匈牙利语 magyar" = "hu"
+          "🇮🇩 印尼语 Bahasa Indonesia" = "id"
+          "🇮🇹 意大利语 Italiano" = "it"
+          "🇯🇵 日语 日本語" = "ja"
+          "🇰🇷 韩语 한국어" = "ko"
+          "🇱🇹 立陶宛语 lietuvių" = "lt"
+          "🇱🇻 拉脱维亚语 latviešu" = "lv"
+          "🇲🇾 马来语 Bahasa Melayu" = "ms"
+          "🇳🇱 荷兰语 Nederlands" = "nl"
+          "🇳🇴 挪威语 norsk" = "no"
+          "🇵🇱 波兰语 polski" = "pl"
+          "🇧🇷 葡萄牙语（巴西） Português (Brasil)" = "pt-BR"
+          "🇵🇹 葡萄牙语 Português" = "pt"
+          "🇷🇺 俄语 Русский" = "ru"
+          "🇸🇰 斯洛伐克语 Slovenčina" = "sk"
+          "🇸🇮 斯洛文尼亚语 slovenščina" = "sl"
+          "🇸🇪 瑞典语 Svenska" = "sv"
+          "🇮🇳 泰米尔语 தமிழ்" = "ta"
+          "🇮🇳 泰卢固语 తెలుగు" = "te"
+          "🇹🇭 泰语 ไทย" = "th"
+          "🇹🇷 土耳其语 Türkçe" = "tr"
+          "🇺🇦 乌克兰语 українська" = "uk"
+          "🇻🇳 越南语 Tiếng Việt" = "vi"
+        }
+          
+        
+        # 确定字幕语言标签
+        $subtitleTag = $subtitleLanguageMap[$subtitleLanguage]
+        # 调试：打印处理后的语言标签值
+        Write-Host "`e[32mProcessed Subtitle Tag: $subtitleTag`e[0m"
+
+        $bestSubtitleUrl = $null
+
+        # 定义正则表达式
+        $subtitleRegex = "(https?://[^\s]+_${subtitleTag}_subtitles_.*?\.m3u8)"
+
+        # 匹配所有字幕链接 (用户选择的语言)
+        $subtitleMatches = [regex]::Matches($m3u8Content, $subtitleRegex, 'IgnoreCase')
+
+        # 提取最佳字幕链接
+        if ($subtitleMatches.Count -gt 0) {
+          $bestSubtitleUrl = $subtitleMatches[0].Groups[1].Value
+        }
+
+        if ($bestSubtitleUrl) {
+          Write-Host "`e[32mFound the best subtitle URL: $bestSubtitleUrl`e[0m"
+          .\ffmpeg.exe -i $bestSubtitleUrl -c copy subtitles.vtt
+          .\ffmpeg.exe -i subtitles.vtt subtitles.srt
+          Remove-Item subtitles.vtt
+          Write-Host "`e[32m字幕下载并转换完成，输出文件：subtitles.srt`e[0m"
+          echo "SUBTITLE_FILE=subtitles.srt" >> $env:GITHUB_ENV
+        } else {
+          Write-Host "`e[31mNo suitable subtitle stream found. Skipping subtitles.`e[0m"
+        }
+
+        # 视频、音频和字幕混流封装并命名
+        $videoFileName = "$movieTitle-${{ env.RELEASE_YEAR }}-$finalResolution-AppleTrailer" -replace "[:?!*：]", "-"
+        if ($finalResolution -eq "1080p") {
+          $audioFile = "audio.m4a"
+        } elseif ($finalResolution -eq "4K") {
+          $audioFile = "audio.ec3"
+        }
+          
+        if (Test-Path "subtitles.srt") {
+          Write-Host "封装视频、音频和字幕至 MKV"
+          .\ffmpeg.exe -i AppleTrailer.mov -i $audioFile -i subtitles.srt -c copy "${videoFileName}.mkv"
+          Write-Host "`e[32m混流封装完成，输出文件： ${videoFileName}.mkv`e[0m"
+          echo "OUTPUT_FILE=${videoFileName}.mkv" >> $env:GITHUB_ENV
+        } else {
+          Write-Host "封装视频和音频至 MOV（无字幕）"
+          .\ffmpeg.exe -i AppleTrailer.mov -i $audioFile -c copy "${videoFileName}.mov"
+          Write-Host "`e[32m混流封装完成，输出文件: ${videoFileName}.mov`e[0m"
+          echo "OUTPUT_FILE=${videoFileName}.mov" >> $env:GITHUB_ENV
+        }
+
+        # 第二次改名逻辑
+        $outputFilePath = Get-Item "${videoFileName}.*"
+        $outputFileName = $outputFilePath.Name 
+        $outputFileExtension = $outputFilePath.Extension
+
+        # 检查是否需要改名
+        if ($outputFileName -like "*4K*") {
+          Write-Host "`e[33mFilename contains '4K'. Checking technical tags...`e[0m"
+
+          # 检查日志中是否包含技术性标签
+          $logContent = Get-Content -Path ffmpeg_download.log -Raw
+          $hasDolbyVision = $logContent -match "DOVI configuration"
+          $hasDolbyAtmos = $logContent -match "Dolby Atmos"
+
+          if ($hasDolbyVision -and $hasDolbyAtmos) {
+            Write-Host "`e[32mBoth 'DolbyVision' and 'DolbyAtmos' tags found. Renaming file...`e[0m"
+
+            # 构造新的文件名
+            $newFileName = "$movieTitle-$finalResolution-AppleTrailer-DolbyVision-DolbyAtmos$outputFileExtension" 
+            $newFilePath = Join-Path -Path $outputFilePath.DirectoryName -ChildPath $newFileName
+
+            # 重命名文件
+            Rename-Item -Path $outputFilePath.FullName -NewName $newFileName
+            Write-Host "`e[32mFile renamed to: $newFileName`e[0m"
+
+            # 写入环境变量
+            echo "RENAMED_FILE=$newFileName" >> $env:GITHUB_ENV
+          } else {
+            Write-Host "`e[33mTechnical tags not found. Keeping the original filename: $outputFileName`e[0m"
+            echo "RENAMED_FILE=$outputFileName" >> $env:GITHUB_ENV
+          }
+        } else {
+          Write-Host "`e[33mFilename does not contain '4K'. No renaming needed.`e[0m"
+          echo "RENAMED_FILE=$outputFileName" >> $env:GITHUB_ENV
+        }
+
+        # 提取改名后的名称（不包括扩展名）
+        if ($newFileName) {
+          $renamedFileBase = [System.IO.Path]::GetFileNameWithoutExtension($newFileName)
+        } else {
+          # 未改名时，使用原封装输出文件名作为基准
+          $renamedFileBase = [System.IO.Path]::GetFileNameWithoutExtension($outputFileName)
+        }
+        Write-Host "`e[32mExtracted base name for renamed file: $renamedFileBase`e[0m"
+        echo "RENAMED_FILE_BASE=$renamedFileBase" >> $env:GITHUB_ENV
+    
+    - name: Upload FFmpeg outputs
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.RENAMED_FILE_BASE }}
+        path: |
+          ${{ env.RENAMED_FILE }}
+
+    - name: Upload results
+      uses: actions/upload-artifact@v4
+      with:
+        name: m3u8-results
+        path: workdir/*
+        
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.RENAMED_FILE_BASE }}
+        release_name: ${{ env.RENAMED_FILE_BASE }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Artifact to GitHub Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.RENAMED_FILE_BASE }}
+        asset_path: ${{ env.RENAMED_FILE }}
+        asset_name: ${{ env.RENAMED_FILE }}
+        asset_content_type: application/octet-stream
+   
